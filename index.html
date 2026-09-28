@@ -67,7 +67,7 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 0 16px;
+      padding: 0 12px;
       border-bottom: 1px solid var(--border-color);
       flex-shrink: 0;
       z-index: 10;
@@ -76,29 +76,33 @@
     .brand-section {
       display: flex;
       align-items: center;
-      gap: 12px;
+      gap: 10px;
+      overflow: hidden;
     }
 
     .group-avatar {
-      width: 40px;
-      height: 40px;
+      width: 38px;
+      height: 38px;
       border-radius: 50%;
       background: var(--accent-primary);
       display: grid;
       place-items: center;
-      font-size: 20px;
+      font-size: 18px;
       flex-shrink: 0;
       box-shadow: 0 0 12px rgba(37, 99, 235, 0.4);
     }
 
     .group-details .title {
-      font-size: 15px;
+      font-size: 14px;
       font-weight: 700;
       color: var(--text-primary);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
 
     .group-details .subtitle {
-      font-size: 12px;
+      font-size: 11px;
       color: var(--text-secondary);
       display: flex;
       align-items: center;
@@ -117,21 +121,23 @@
     .header-actions {
       display: flex;
       align-items: center;
-      gap: 10px;
+      gap: 6px;
+      flex-shrink: 0;
     }
 
     .btn-install {
       background: var(--accent-primary);
       color: white;
       border: none;
-      padding: 6px 14px;
+      padding: 6px 10px;
       border-radius: 20px;
-      font-size: 12px;
+      font-size: 11px;
       font-weight: bold;
       cursor: pointer;
       display: flex;
       align-items: center;
-      gap: 5px;
+      gap: 4px;
+      white-space: nowrap;
       transition: background 0.2s ease, transform 0.1s ease;
     }
 
@@ -139,8 +145,8 @@
     .btn-install:active { transform: scale(0.95); }
 
     .user-profile-btn {
-      width: 40px;
-      height: 40px;
+      width: 36px;
+      height: 36px;
       border-radius: 50%;
       background: #1e293b;
       overflow: hidden;
@@ -151,7 +157,8 @@
       justify-content: center;
       font-weight: bold;
       color: white;
-      font-size: 14px;
+      font-size: 13px;
+      flex-shrink: 0;
       transition: transform 0.2s ease, box-shadow 0.2s ease;
     }
 
@@ -793,6 +800,8 @@
         </div>
       </div>
       <div class="header-actions">
+        <!-- Direct File Download App Button -->
+        <button id="downloadAppBtn" class="btn-install" title="Download HTML File">📥 App Download</button>
         <!-- Install App Button for PWA -->
         <button id="installAppBtn" class="btn-install hidden">📲 Install App</button>
         <div class="user-profile-btn" id="profileBtn" title="User Profile">
@@ -1001,6 +1010,25 @@
       await syncWithJSONBin();
       setInterval(syncWithJSONBin, 3000);
     });
+
+    // =========================================================================
+    // Direct HTML App File Download Logic
+    // =========================================================================
+    const downloadAppBtn = document.getElementById('downloadAppBtn');
+    if (downloadAppBtn) {
+      downloadAppBtn.addEventListener('click', () => {
+        const fullHTML = "<!DOCTYPE html>\n" + document.documentElement.outerHTML;
+        const blob = new Blob([fullHTML], { type: 'text/html;charset=utf-8' });
+        const downloadUrl = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = downloadUrl;
+        link.download = 'index.html';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(downloadUrl);
+      });
+    }
 
     // =========================================================================
     // Navigation Tabs Switching (Public Chat vs Notice Board)
