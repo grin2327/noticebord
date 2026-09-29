@@ -3,11 +3,18 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <meta name="theme-color" content="#ffffff" id="themeColorMeta">
+  <meta name="theme-color" content="#0f172a" id="themeColorMeta">
+  
+  <!-- Mobile & PWA Support Meta Tags -->
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="BOU Lounge">
+
   <title>B.O.U Lounge 2026-2027</title>
 
   <!-- Dynamic Inline Web Manifest for Mobile PWA Installation -->
-  <link rel="https://bou.ac.bd/fontend/images/bou_logo.jpg" id="manifestPlaceholder">
+  <link rel="manifest" id="manifestPlaceholder">
 
   <style>
     /* Color Palette Definitions */
@@ -467,6 +474,26 @@
       justify-content: space-between;
       align-items: center;
       margin-bottom: 14px;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .notice-controls {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .notice-sort-select {
+      padding: 6px 10px;
+      border-radius: 12px;
+      border: 1px solid var(--border-color);
+      background: var(--input-bg);
+      color: var(--text-primary);
+      font-size: 12px;
+      font-weight: 600;
+      outline: none;
+      cursor: pointer;
     }
 
     .btn-admin-add {
@@ -834,6 +861,41 @@
     }
 
     .lightbox-img:active { cursor: grabbing; }
+
+    /* Mobile PWA Install Guide Modal */
+    .pwa-guide-list {
+      list-style: none;
+      padding: 0;
+      font-size: 13px;
+      color: var(--text-secondary);
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-top: 12px;
+    }
+
+    .pwa-guide-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      background: var(--input-bg);
+      padding: 10px;
+      border-radius: 10px;
+      border: 1px solid var(--border-color);
+    }
+
+    .pwa-step-num {
+      background: var(--msg-out);
+      color: white;
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      font-size: 11px;
+      font-weight: bold;
+      flex-shrink: 0;
+    }
   </style>
 </head>
 <body>
@@ -915,7 +977,14 @@
     <section class="content-section hidden" id="noticeSection">
       <div class="notice-container">
         <div class="notice-header-bar">
-          <div style="font-weight:700; font-size:15px; color:var(--text-primary)">Official Notices</div>
+          <div class="notice-controls">
+            <span style="font-weight:700; font-size:15px; color:var(--text-primary)">Official Notices</span>
+            <!-- Sorting Option (New to Old / Old to New) -->
+            <select class="notice-sort-select" id="noticeSortSelect" title="Sort Notices">
+              <option value="newest">🆕 New to Old</option>
+              <option value="oldest">📜 Old to New</option>
+            </select>
+          </div>
           <button class="btn-admin-add" id="openAddNoticeBtn">➕ Add Notice</button>
         </div>
 
@@ -1020,6 +1089,38 @@
       </div>
     </div>
 
+    <!-- Mobile PWA Installation Guide Modal -->
+    <div class="modal-overlay hidden" id="pwaGuideModal">
+      <div class="modal-card">
+        <button class="modal-close-btn" id="closePwaModalBtn" type="button">&times;</button>
+        <h3>📱 How to Install App</h3>
+        <p style="font-size:12px; color:var(--text-secondary); text-align:center;">
+          মোবাইলে সরাসরি অ্যাপের মতো ব্যবহার করার ধাপসমূহ:
+        </p>
+
+        <ul class="pwa-guide-list">
+          <li class="pwa-guide-item">
+            <div class="pwa-step-num">1</div>
+            <div>কোড ফাইলটি <b>Vercel / Netlify / GitHub Pages</b>-এ আপলোড করুন (HTTPS ওয়েবসাইট তৈরি করুন)।</div>
+          </li>
+          <li class="pwa-guide-item">
+            <div class="pwa-step-num">2</div>
+            <div>ওয়েবসাইটটি আপনার মোবাইলের Chrome বা Safari ব্রাউজারে অপেন করুন।</div>
+          </li>
+          <li class="pwa-guide-item">
+            <div class="pwa-step-num">3</div>
+            <div>উপরে <b>📲 Install App</b> বাটনে ক্লিক করলে নিচ থেকে অফিসিয়াল অ্যাপ ইনস্টল পপআপ চলে আসবে।</div>
+          </li>
+          <li class="pwa-guide-item">
+            <div class="pwa-step-num">4</div>
+            <div>অথবা Chrome ব্রাউজারের থ্রি-ডট (⋮) মেনু থেকে <b>"Add to Home screen"</b> বা <b>"Install app"</b> সিলেক্ট করুন।</div>
+          </li>
+        </ul>
+
+        <button type="button" class="btn-primary" style="margin-top:16px;" onclick="document.getElementById('pwaGuideModal').classList.add('hidden')">বুঝেছি</button>
+      </div>
+    </div>
+
     <!-- Interactive Image Lightbox Modal with Pan & Zoom -->
     <div class="lightbox-overlay hidden" id="lightboxModal">
       <div class="lightbox-toolbar">
@@ -1044,13 +1145,21 @@
       "short_name": "BOU Lounge",
       "start_url": "./",
       "display": "standalone",
-      "background_color": "#ffffff",
+      "background_color": "#0f172a",
       "theme_color": "#0f172a",
-      "icons": [{
-        "src": "https://via.placeholder.com/192/0f172a/ffffff?text=BOU",
-        "sizes": "192x192",
-        "type": "image/png"
-      }]
+      "orientation": "portrait",
+      "icons": [
+        {
+          "src": "https://via.placeholder.com/192/0f172a/ffffff?text=BOU",
+          "sizes": "192x192",
+          "type": "image/png"
+        },
+        {
+          "src": "https://via.placeholder.com/512/0f172a/ffffff?text=BOU",
+          "sizes": "512x512",
+          "type": "image/png"
+        }
+      ]
     };
     const stringManifest = JSON.stringify(manifestData);
     const blobManifest = new Blob([stringManifest], {type: 'application/json'});
@@ -1165,10 +1274,11 @@
     });
 
     // =========================================================================
-    // Direct Mobile App Installation (PWA Prompt)
+    // Direct Mobile App Installation (PWA Prompt & Guide Handler)
     // =========================================================================
-    let deferredPrompt;
+    let deferredPrompt = null;
     const installAppBtn = document.getElementById('installAppBtn');
+    const pwaGuideModal = document.getElementById('pwaGuideModal');
 
     window.addEventListener('beforeinstallprompt', (e) => {
       e.preventDefault();
@@ -1185,8 +1295,12 @@
         }
         deferredPrompt = null;
       } else {
-        alert("To install app on mobile, tap browser menu (3 dots) and click 'Add to Home screen' or 'Install App'.");
+        pwaGuideModal.classList.remove('hidden');
       }
+    });
+
+    document.getElementById('closePwaModalBtn').addEventListener('click', () => {
+      pwaGuideModal.classList.add('hidden');
     });
 
     // =========================================================================
@@ -1210,6 +1324,11 @@
       tabPublicChat.classList.remove('active');
       noticeSection.classList.remove('hidden');
       chatSection.classList.add('hidden');
+      renderAllNotices();
+    });
+
+    // Notice Board Sort Event Listener
+    document.getElementById('noticeSortSelect').addEventListener('change', () => {
       renderAllNotices();
     });
 
@@ -1446,7 +1565,7 @@
     function hideAuthModal() { document.getElementById('authModal').classList.add('hidden'); }
 
     // =========================================================================
-    // Notice Board Operations
+    // Notice Board Operations & Custom Sorting
     // =========================================================================
     const adminNoticeModal = document.getElementById('adminNoticeModal');
     const openAddNoticeBtn = document.getElementById('openAddNoticeBtn');
@@ -1540,12 +1659,23 @@
       alert("Notice published successfully!");
     });
 
+    // Render Notices Sorted by Selected Option (Default: Newest First)
     function renderAllNotices() {
       const feed = document.getElementById('noticeFeed');
       feed.innerHTML = '';
 
+      const sortMode = document.getElementById('noticeSortSelect').value || 'newest';
+
       if (localStoreData.notices && localStoreData.notices.length > 0) {
-        localStoreData.notices.forEach(renderNoticeItem);
+        let sortedNotices = [...localStoreData.notices];
+
+        sortedNotices.sort((a, b) => {
+          const dateA = new Date(a.created_at || 0).getTime();
+          const dateB = new Date(b.created_at || 0).getTime();
+          return sortMode === 'newest' ? (dateB - dateA) : (dateA - dateB);
+        });
+
+        sortedNotices.forEach(renderNoticeItem);
       } else {
         feed.innerHTML = '<div style="text-align:center; color:var(--text-secondary); font-size:13px; padding:30px;">No notices published yet.</div>';
       }
@@ -2056,7 +2186,7 @@
       return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
     }
 
-    // Service Worker for offline capability & PWA support
+    // Inline Service Worker Registration for PWA Standalone Mode
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
         const swCode = `
