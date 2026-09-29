@@ -343,10 +343,10 @@
 
     .msg-img {
       max-width: 100%;
-      max-height: 280px;
-      object-fit: contain;
+      max-height: 320px;
+      object-fit: cover;
       border-radius: 14px;
-      margin-top: 4px;
+      margin-top: 6px;
       display: block;
       cursor: pointer;
       border: 1px solid var(--border-color);
@@ -488,14 +488,14 @@
       overflow-y: auto;
       display: flex;
       flex-direction: column;
-      gap: 14px;
+      gap: 16px;
     }
 
     .notice-card {
       background: var(--card-bg);
       border: 1px solid var(--border-color);
       border-radius: 16px;
-      padding: 16px;
+      padding: 18px;
       position: relative;
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
     }
@@ -518,10 +518,11 @@
     }
 
     .notice-title {
-      font-size: 16px;
+      font-size: 17px;
       font-weight: 700;
       color: var(--text-primary);
-      margin-bottom: 6px;
+      margin-bottom: 8px;
+      line-height: 1.3;
     }
 
     .notice-body {
@@ -530,25 +531,36 @@
       line-height: 1.5;
       white-space: pre-line;
       word-break: break-word;
+      margin-bottom: 10px;
     }
 
-    /* Fully Fitted Notice Image Container */
+    /* High-Definition Responsive Notice Image */
+    .notice-img-container {
+      width: 100%;
+      border-radius: 12px;
+      overflow: hidden;
+      margin-top: 10px;
+      border: 1px solid var(--border-color);
+      background: rgba(0, 0, 0, 0.02);
+    }
+
     .notice-img {
       width: 100%;
-      max-height: 400px;
-      object-fit: contain;
-      background: rgba(0, 0, 0, 0.03);
-      border-radius: 12px;
-      margin-top: 10px;
-      cursor: pointer;
-      border: 1px solid var(--border-color);
+      height: auto;
       display: block;
+      object-fit: cover;
+      cursor: pointer;
+      transition: transform 0.2s ease;
+    }
+
+    .notice-img:hover {
+      transform: scale(1.01);
     }
 
     .notice-time {
       font-size: 11px;
       color: var(--text-secondary);
-      margin-top: 10px;
+      margin-top: 12px;
     }
 
     .btn-notice-delete {
@@ -953,7 +965,7 @@
           </div>
 
           <div class="form-group">
-            <label>Attach Image (Optional)</label>
+            <label>Attach Image (Max 10 MB)</label>
             <input type="file" id="noticeImageInput" accept="image/*" />
           </div>
 
@@ -1034,6 +1046,7 @@
     const CLOUDINARY_CLOUD_NAME = "tgongwj1";
     const CLOUDINARY_UPLOAD_PRESET = "bou_lounge";
     const CLOUDINARY_API_URL = `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`;
+    const MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024; // 10 MB Limit
 
     let authMode = 'login';
     let currentUser = null;
@@ -1141,7 +1154,7 @@
         }
         deferredPrompt = null;
       } else {
-        alert("মোবাইলে অ্যাপ ইনস্টল করতে ব্রাউজার মেনু (3-dots) থেকে 'Add to Home Screen' বা 'Install App' বাটনে চাপ দিন।");
+        alert("To install app on mobile, tap browser menu (3 dots) and click 'Add to Home screen' or 'Install App'.");
       }
     });
 
@@ -1162,7 +1175,7 @@
     });
 
     tabNoticeBoard.addEventListener('click', () => {
-      tabNoticeBoard.classList.active ? null : tabNoticeBoard.classList.add('active');
+      tabNoticeBoard.classList.add('active');
       tabPublicChat.classList.remove('active');
       noticeSection.classList.remove('hidden');
       chatSection.classList.add('hidden');
@@ -1170,9 +1183,17 @@
     });
 
     // =========================================================================
-    // Cloud Image Uploading Helper (Cloudinary Unsigned API)
+    // Cloud Image Uploading Helper (Cloudinary HD Optimization API & 10MB Check)
     // =========================================================================
     async function uploadToCloudinary(file) {
+      if (!file) return null;
+
+      // 10 MB File Size Validation Check
+      if (file.size > MAX_FILE_SIZE_BYTES) {
+        alert("⚠️ File size exceeds 10 MB limit!\nPlease choose a smaller image.");
+        return null;
+      }
+
       try {
         const formData = new FormData();
         formData.append("file", file);
@@ -1185,7 +1206,9 @@
 
         const data = await res.json();
         if (data.secure_url) {
-          return data.secure_url;
+          // Dynamic Cloudinary HD Optimization URL Transformation
+          let optimizedUrl = data.secure_url.replace('/upload/', '/upload/q_auto,f_auto/');
+          return optimizedUrl;
         } else {
           console.error("Cloudinary Upload Error Response:", data);
           throw new Error("Cloudinary Upload Failed");
@@ -1278,7 +1301,7 @@
           document.getElementById('avatarPreview').src = imgUrl;
           label.textContent = "✅ Uploaded!";
         } else {
-          label.textContent = "❌ Upload Failed";
+          label.textContent = "📷 Change Profile Photo";
         }
       } catch (e) {
         label.textContent = "❌ Failed to load";
@@ -1417,26 +1440,31 @@
       adminNoticeModal.classList.add('hidden');
     });
 
-    // Upload Notice Image to Cloud instantly upon selection
+    // Upload Notice Image to Cloud instantly upon selection (With HD Optimization)
     document.getElementById('noticeImageInput').addEventListener('change', async function() {
       const file = this.files[0];
       if (!file) return;
+
       try {
         publishNoticeBtn.disabled = true;
-        noticeAdminStatus.textContent = '⏳ Uploading image to cloud... Please wait.';
+        noticeAdminStatus.textContent = '⏳ Uploading HD image to cloud... Please wait.';
         noticeAdminStatus.className = 'status-msg';
 
         const imgUrl = await uploadToCloudinary(file);
         
         if(imgUrl) {
           tempNoticeImgBase64 = imgUrl;
-          noticeAdminStatus.textContent = '✅ Image uploaded successfully!';
+          noticeAdminStatus.textContent = '✅ Image uploaded successfully in HD!';
           noticeAdminStatus.className = 'status-msg info';
           publishNoticeBtn.disabled = false;
         } else {
-          throw new Error("Upload Failed");
+          this.value = '';
+          noticeAdminStatus.textContent = '❌ Upload failed or cancelled.';
+          noticeAdminStatus.className = 'status-msg error';
+          publishNoticeBtn.disabled = false;
         }
       } catch (e) {
+        this.value = '';
         noticeAdminStatus.textContent = '❌ Failed to upload image.';
         noticeAdminStatus.className = 'status-msg error';
         publishNoticeBtn.disabled = false;
@@ -1495,7 +1523,15 @@
       card.className = 'notice-card';
 
       const timeStr = notice.created_at ? new Date(notice.created_at).toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'short' }) : '';
-      let imgHtml = notice.image_url ? `<img src="${notice.image_url}" class="notice-img" onclick="openLightbox('${notice.image_url}')" />` : '';
+      
+      let imgHtml = '';
+      if (notice.image_url) {
+        imgHtml = `
+          <div class="notice-img-container">
+            <img src="${notice.image_url}" class="notice-img" alt="Notice Image" onclick="openLightbox('${notice.image_url}')" loading="lazy" />
+          </div>
+        `;
+      }
 
       card.innerHTML = `
         <div class="notice-card-header">
@@ -1885,7 +1921,6 @@
       const originalIcon = sendBtn.innerHTML;
 
       try {
-        // Show loading state on send button
         sendBtn.innerHTML = "⏳";
         sendBtn.disabled = true;
 
@@ -1893,8 +1928,6 @@
 
         if(imgUrl) {
             await sendNewMessage('', imgUrl);
-        } else {
-            alert("Image upload to cloud failed!");
         }
       } catch (err) {
         alert("Failed to send image.");
