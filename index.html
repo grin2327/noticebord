@@ -10,6 +10,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="BOU Lounge">
+  <link rel="apple-touch-icon" href="https://via.placeholder.com/192/0f172a/ffffff?text=BOU">
 
   <title>B.O.U Lounge 2026-2027</title>
 
@@ -861,41 +862,6 @@
     }
 
     .lightbox-img:active { cursor: grabbing; }
-
-    /* Mobile PWA Install Guide Modal */
-    .pwa-guide-list {
-      list-style: none;
-      padding: 0;
-      font-size: 13px;
-      color: var(--text-secondary);
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-      margin-top: 12px;
-    }
-
-    .pwa-guide-item {
-      display: flex;
-      align-items: flex-start;
-      gap: 10px;
-      background: var(--input-bg);
-      padding: 10px;
-      border-radius: 10px;
-      border: 1px solid var(--border-color);
-    }
-
-    .pwa-step-num {
-      background: var(--msg-out);
-      color: white;
-      width: 22px;
-      height: 22px;
-      border-radius: 50%;
-      display: grid;
-      place-items: center;
-      font-size: 11px;
-      font-weight: bold;
-      flex-shrink: 0;
-    }
   </style>
 </head>
 <body>
@@ -912,7 +878,7 @@
         </div>
       </div>
       <div class="header-actions">
-        <!-- Native Mobile PWA Install Button -->
+        <!-- Direct Mobile PWA Install Button -->
         <button id="installAppBtn" class="btn-install">📲 Install App</button>
         <!-- User Profile Button -->
         <div class="user-profile-btn" id="profileBtn" title="Account & Settings">
@@ -1089,38 +1055,6 @@
       </div>
     </div>
 
-    <!-- Mobile PWA Installation Guide Modal -->
-    <div class="modal-overlay hidden" id="pwaGuideModal">
-      <div class="modal-card">
-        <button class="modal-close-btn" id="closePwaModalBtn" type="button">&times;</button>
-        <h3>📱 How to Install App</h3>
-        <p style="font-size:12px; color:var(--text-secondary); text-align:center;">
-          মোবাইলে সরাসরি অ্যাপের মতো ব্যবহার করার ধাপসমূহ:
-        </p>
-
-        <ul class="pwa-guide-list">
-          <li class="pwa-guide-item">
-            <div class="pwa-step-num">1</div>
-            <div>কোড ফাইলটি <b>Vercel / Netlify / GitHub Pages</b>-এ আপলোড করুন (HTTPS ওয়েবসাইট তৈরি করুন)।</div>
-          </li>
-          <li class="pwa-guide-item">
-            <div class="pwa-step-num">2</div>
-            <div>ওয়েবসাইটটি আপনার মোবাইলের Chrome বা Safari ব্রাউজারে অপেন করুন।</div>
-          </li>
-          <li class="pwa-guide-item">
-            <div class="pwa-step-num">3</div>
-            <div>উপরে <b>📲 Install App</b> বাটনে ক্লিক করলে নিচ থেকে অফিসিয়াল অ্যাপ ইনস্টল পপআপ চলে আসবে।</div>
-          </li>
-          <li class="pwa-guide-item">
-            <div class="pwa-step-num">4</div>
-            <div>অথবা Chrome ব্রাউজারের থ্রি-ডট (⋮) মেনু থেকে <b>"Add to Home screen"</b> বা <b>"Install app"</b> সিলেক্ট করুন।</div>
-          </li>
-        </ul>
-
-        <button type="button" class="btn-primary" style="margin-top:16px;" onclick="document.getElementById('pwaGuideModal').classList.add('hidden')">বুঝেছি</button>
-      </div>
-    </div>
-
     <!-- Interactive Image Lightbox Modal with Pan & Zoom -->
     <div class="lightbox-overlay hidden" id="lightboxModal">
       <div class="lightbox-toolbar">
@@ -1138,12 +1072,14 @@
 
   <script>
     // =========================================================================
-    // Dynamic Manifest Generation for Direct Mobile PWA Installation
+    // Universal Dynamic PWA Manifest Configuration
     // =========================================================================
     const manifestData = {
-      "name": "BOU Lounge 2026",
+      "name": "BOU Lounge 2026-2027",
       "short_name": "BOU Lounge",
+      "description": "Official BOU Lounge App",
       "start_url": "./",
+      "scope": "./",
       "display": "standalone",
       "background_color": "#0f172a",
       "theme_color": "#0f172a",
@@ -1152,19 +1088,64 @@
         {
           "src": "https://via.placeholder.com/192/0f172a/ffffff?text=BOU",
           "sizes": "192x192",
-          "type": "image/png"
+          "type": "image/png",
+          "purpose": "any maskable"
         },
         {
           "src": "https://via.placeholder.com/512/0f172a/ffffff?text=BOU",
           "sizes": "512x512",
-          "type": "image/png"
+          "type": "image/png",
+          "purpose": "any maskable"
         }
       ]
     };
-    const stringManifest = JSON.stringify(manifestData);
-    const blobManifest = new Blob([stringManifest], {type: 'application/json'});
-    const manifestURL = URL.createObjectURL(blobManifest);
-    document.getElementById('manifestPlaceholder').setAttribute('href', manifestURL);
+    
+    // Convert Manifest to Data URI for seamless browser PWA detection
+    const manifestJsonString = JSON.stringify(manifestData);
+    const manifestDataUri = 'data:application/manifest+json;charset=utf-8,' + encodeURIComponent(manifestJsonString);
+    document.getElementById('manifestPlaceholder').setAttribute('href', manifestDataUri);
+
+    // Function to check if running as an installed standalone app
+    function isRunningStandalone() {
+      return (window.matchMedia('(display-mode: standalone)').matches) || 
+             (window.navigator.standalone === true) || 
+             (document.referrer.includes('android-app://'));
+    }
+
+    // =========================================================================
+    // Direct Mobile App Installation Handler (PWA)
+    // =========================================================================
+    let deferredPrompt = null;
+    const installAppBtn = document.getElementById('installAppBtn');
+
+    // Hide install button if already opened as installed App
+    if (isRunningStandalone()) {
+      installAppBtn.style.display = 'none';
+    }
+
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      deferredPrompt = e;
+      if (!isRunningStandalone()) {
+        installAppBtn.style.display = 'flex';
+      }
+    });
+
+    window.addEventListener('appinstalled', () => {
+      deferredPrompt = null;
+      installAppBtn.style.display = 'none';
+    });
+
+    installAppBtn.addEventListener('click', async () => {
+      if (deferredPrompt) {
+        deferredPrompt.prompt();
+        const { outcome } = await deferredPrompt.userChoice;
+        if (outcome === 'accepted') {
+          installAppBtn.style.display = 'none';
+        }
+        deferredPrompt = null;
+      }
+    });
 
     // =========================================================================
     // Global Configurations & Online API
@@ -1274,36 +1255,6 @@
     });
 
     // =========================================================================
-    // Direct Mobile App Installation (PWA Prompt & Guide Handler)
-    // =========================================================================
-    let deferredPrompt = null;
-    const installAppBtn = document.getElementById('installAppBtn');
-    const pwaGuideModal = document.getElementById('pwaGuideModal');
-
-    window.addEventListener('beforeinstallprompt', (e) => {
-      e.preventDefault();
-      deferredPrompt = e;
-      installAppBtn.style.display = 'flex';
-    });
-
-    installAppBtn.addEventListener('click', async () => {
-      if (deferredPrompt) {
-        deferredPrompt.prompt();
-        const { outcome } = await deferredPrompt.userChoice;
-        if (outcome === 'accepted') {
-          installAppBtn.style.display = 'none';
-        }
-        deferredPrompt = null;
-      } else {
-        pwaGuideModal.classList.remove('hidden');
-      }
-    });
-
-    document.getElementById('closePwaModalBtn').addEventListener('click', () => {
-      pwaGuideModal.classList.add('hidden');
-    });
-
-    // =========================================================================
     // Navigation Tabs Switching
     // =========================================================================
     const tabPublicChat = document.getElementById('tabPublicChat');
@@ -1339,7 +1290,7 @@
       if (!file) return null;
 
       if (file.size > MAX_FILE_SIZE_BYTES) {
-        alert("⚠️ File size exceeds 10 MB limit!\nPlease choose a smaller file.");
+        alert("File size exceeds 10 MB limit!");
         return null;
       }
 
@@ -1358,11 +1309,9 @@
           let optimizedUrl = data.secure_url.replace('/upload/', '/upload/q_auto,f_auto/');
           return optimizedUrl;
         } else {
-          console.error("Cloudinary Upload Error Response:", data);
-          throw new Error("Cloudinary Upload Failed");
+          return null;
         }
       } catch (error) {
-        console.error("Cloudinary Image Upload Failed:", error);
         return null;
       }
     }
@@ -1440,18 +1389,18 @@
       if (!file) return;
       const label = document.getElementById('avatarUploadLabel');
       try {
-        label.textContent = "⏳ Uploading...";
+        label.textContent = "Uploading...";
         const imgUrl = await uploadToCloudinary(file);
         
         if (imgUrl) {
           tempAvatarBase64 = imgUrl;
           document.getElementById('avatarPreview').src = imgUrl;
-          label.textContent = "✅ Uploaded!";
+          label.textContent = "Uploaded!";
         } else {
-          label.textContent = "📷 Change Profile Photo";
+          label.textContent = "Change Profile Photo";
         }
       } catch (e) {
-        label.textContent = "❌ Failed to load";
+        label.textContent = "Failed to load";
       }
     });
 
@@ -1597,27 +1546,27 @@
 
       try {
         publishNoticeBtn.disabled = true;
-        noticeAdminStatus.textContent = '⏳ Uploading file to cloud... Please wait.';
+        noticeAdminStatus.textContent = 'Uploading file to cloud... Please wait.';
         noticeAdminStatus.className = 'status-msg';
 
         const imgUrl = await uploadToCloudinary(file);
         
         if(imgUrl) {
           tempNoticeImgBase64 = imgUrl;
-          noticeAdminStatus.textContent = `✅ File uploaded (${tempNoticeFileSize})!`;
+          noticeAdminStatus.textContent = `File uploaded (${tempNoticeFileSize})!`;
           noticeAdminStatus.className = 'status-msg info';
           publishNoticeBtn.disabled = false;
         } else {
           this.value = '';
           tempNoticeFileSize = null;
-          noticeAdminStatus.textContent = '❌ Upload failed or cancelled.';
+          noticeAdminStatus.textContent = 'Upload failed or cancelled.';
           noticeAdminStatus.className = 'status-msg error';
           publishNoticeBtn.disabled = false;
         }
       } catch (e) {
         this.value = '';
         tempNoticeFileSize = null;
-        noticeAdminStatus.textContent = '❌ Failed to upload file.';
+        noticeAdminStatus.textContent = 'Failed to upload file.';
         noticeAdminStatus.className = 'status-msg error';
         publishNoticeBtn.disabled = false;
       }
