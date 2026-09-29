@@ -970,10 +970,10 @@
 
   <script>
     // =========================================================================
-    // Global Configurations & Local Storage Setup
+    // Configurations & Online API Keys Setup
     // =========================================================================
     const JSONBIN_BIN_ID = "YOUR_BIN_ID_HERE"; 
-    const JSONBIN_API_KEY = "YOUR_MASTER_KEY_HERE"; 
+    const JSONBIN_ACCESS_KEY = "YOUR_ACCESS_KEY_HERE"; // Uses X-Access-Key safely
     const JSONBIN_URL = `https://api.jsonbin.io/v3/b/${JSONBIN_BIN_ID}`;
     const ADMIN_PASSWORD_DEFAULT = "admin123"; 
     const MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024;
@@ -984,6 +984,7 @@
     let tempAvatarBase64 = null;
     let tempNoticeImgBase64 = null;
 
+    // Purely in-memory cache (RAM only, NOT saved to LocalStorage)
     let localStoreData = {
       users: [],
       messages: [],
@@ -994,21 +995,13 @@
     // Lifecycle Init
     // =========================================================================
     window.addEventListener('DOMContentLoaded', async () => {
-      const savedMsgs = localStorage.getItem('bou_chat_messages');
-      if (savedMsgs) { try { localStoreData.messages = JSON.parse(savedMsgs); } catch (e) {} }
-
-      const savedNotices = localStorage.getItem('bou_chat_notices');
-      if (savedNotices) { try { localStoreData.notices = JSON.parse(savedNotices); } catch (e) {} }
-
-      const savedUsers = localStorage.getItem('bou_chat_users');
-      if (savedUsers) { try { localStoreData.users = JSON.parse(savedUsers); } catch (e) {} }
-
+      // ONLY load current logged-in user profile (Name, Phone, Avatar) from LocalStorage
       const savedUser = localStorage.getItem('bou_chat_user');
       if (savedUser) {
         try { currentUser = JSON.parse(savedUser); } catch(e) {}
       }
 
-      // Auto Assign Guest Profile if not logged in so Mobile Chat is ALWAYS usable immediately
+      // Default Guest User Profile if not logged in
       if (!currentUser) {
         currentUser = {
           id: 'usr_guest_' + Math.floor(1000 + Math.random() * 9000),
@@ -1020,11 +1013,12 @@
       }
 
       updateUserUI();
-      renderAllMessages();
-      renderAllNotices();
 
+      // Fetch live Messages, Notices & User List strictly from Online API
       await syncWithJSONBin();
-      setInterval(syncWithJSONBin, 3500);
+      
+      // Auto-refresh chat & notices every 3 seconds from online
+      setInterval(syncWithJSONBin, 3000);
     });
 
     // =========================================================================
@@ -1240,10 +1234,16 @@
     });
 
     function saveUserData() {
+      // ONLY profile details (Name, Phone, Profile Pic) are saved in LocalStorage
       if (currentUser && !currentUser.isGuest) {
-        localStorage.setItem('bou_chat_user', JSON.stringify(currentUser));
+        localStorage.setItem('bou_chat_user', JSON.stringify({
+          id: currentUser.id,
+          name: currentUser.name,
+          phone: currentUser.phone,
+          avatar: currentUser.avatar,
+          isGuest: false
+        }));
       }
-      localStorage.setItem('bou_chat_users', JSON.stringify(localStoreData.users));
       saveToJSONBin();
     }
 
@@ -1257,7 +1257,6 @@
       const chatInputBar = document.getElementById('chatInputBar');
       const guestNoticeBar = document.getElementById('guestNoticeBar');
 
-      // ALWAYS keep chatInputBar visible on Mobile and Desktop!
       chatInputBar.classList.remove('hidden');
 
       if (!currentUser || currentUser.isGuest) {
@@ -1344,7 +1343,6 @@
 
       if (!localStoreData.notices) localStoreData.notices = [];
       localStoreData.notices.unshift(newNotice);
-      localStorage.setItem('bou_chat_notices', JSON.stringify(localStoreData.notices));
 
       renderAllNotices();
       await saveToJSONBin();
@@ -1500,14 +1498,14 @@
     });
 
     // =========================================================================
-    // JSONBin Backend Sync Logic
+    // Pure Online JSONBin Sync Logic (Using X-Access-Key)
     // =========================================================================
     async function syncWithJSONBin() {
       if (!JSONBIN_BIN_ID || JSONBIN_BIN_ID === "YOUR_BIN_ID_HERE") return;
 
       try {
         const res = await fetch(JSONBIN_URL + '/latest', {
-          headers: { 'X-Master-Key': JSONBIN_API_KEY }
+          headers: { 'X-Access-Key': JSONBIN_ACCESS_KEY }
         });
 
         if (res.ok) {
@@ -1516,7 +1514,6 @@
             if (json.record.messages) {
               if (JSON.stringify(localStoreData.messages) !== JSON.stringify(json.record.messages)) {
                 localStoreData.messages = json.record.messages;
-                localStorage.setItem('bou_chat_messages', JSON.stringify(localStoreData.messages));
                 renderAllMessages();
               }
             }
@@ -1524,18 +1521,16 @@
             if (json.record.notices) {
               if (JSON.stringify(localStoreData.notices) !== JSON.stringify(json.record.notices)) {
                 localStoreData.notices = json.record.notices;
-                localStorage.setItem('bou_chat_notices', JSON.stringify(localStoreData.notices));
                 renderAllNotices();
               }
             }
 
             if (json.record.users) {
               localStoreData.users = json.record.users;
-              localStorage.setItem('bou_chat_users', JSON.stringify(localStoreData.users));
             }
           }
         }
-      } catch (e) { console.warn('Sync warning:', e); }
+      } catch (e) { console.warn('Online sync warning:', e); }
     }
 
     async function saveToJSONBin() {
@@ -1545,14 +1540,14 @@
           method: 'PUT',
           headers: {
             'Content-Type': 'application/json',
-            'X-Master-Key': JSONBIN_API_KEY
+            'X-Access-Key': JSONBIN_ACCESS_KEY
           },
           body: JSON.stringify(localStoreData)
         });
-      } catch (e) { console.error('Save failed:', e); }
+      } catch (e) { console.error('Online save failed:', e); }
     }
 
-    // Advanced Image Compression for Faster & Error-free Cloud Uploads
+    // Fast Base64 Image Compression
     function compressImage(file, maxWidth = 500, quality = 0.45) {
       return new Promise((resolve, reject) => {
         const reader = new FileReader();
@@ -1610,11 +1605,9 @@
       if (pendingDeleteTarget) {
         if (pendingDeleteTarget.type === 'chat') {
           localStoreData.messages = localStoreData.messages.filter(m => m.id !== pendingDeleteTarget.id);
-          localStorage.setItem('bou_chat_messages', JSON.stringify(localStoreData.messages));
           renderAllMessages();
         } else if (pendingDeleteTarget.type === 'notice') {
           localStoreData.notices = localStoreData.notices.filter(n => n.id !== pendingDeleteTarget.id);
-          localStorage.setItem('bou_chat_notices', JSON.stringify(localStoreData.notices));
           renderAllNotices();
         }
 
@@ -1764,8 +1757,6 @@
       };
 
       localStoreData.messages.push(newMsg);
-      localStorage.setItem('bou_chat_messages', JSON.stringify(localStoreData.messages));
-      
       renderMessage(newMsg);
       scrollToBottom();
 
