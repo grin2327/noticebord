@@ -1,0 +1,25 @@
+{
+  "name": "BOU Lounge 2026-2027",
+  "short_name": "BOU Lounge",
+  "description": "Official BOU Lounge App",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#0f172a",
+  "theme_color": "#0f172a",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "https://via.placeholder.com/192/0f172a/ffffff?text=BOU",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "https://via.placeholder.com/512/0f172a/ffffff?text=BOU",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
