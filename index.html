@@ -343,7 +343,7 @@
 
     .msg-img {
       max-width: 100%;
-      max-height: 320px;
+      max-height: 280px;
       object-fit: cover;
       border-radius: 14px;
       margin-top: 6px;
@@ -534,27 +534,50 @@
       margin-bottom: 10px;
     }
 
-    /* High-Definition Responsive Notice Image */
-    .notice-img-container {
-      width: 100%;
-      border-radius: 12px;
-      overflow: hidden;
+    /* Notice Board Thumbnail Image & File Size Badge Styles */
+    .notice-media-wrapper {
       margin-top: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      align-items: flex-start;
+    }
+
+    .notice-img-container {
+      max-width: 160px;
+      max-height: 130px;
+      border-radius: 10px;
+      overflow: hidden;
       border: 1px solid var(--border-color);
-      background: rgba(0, 0, 0, 0.02);
+      background: rgba(0, 0, 0, 0.04);
+      cursor: pointer;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .notice-img-container:hover {
+      transform: scale(1.03);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.12);
     }
 
     .notice-img {
       width: 100%;
-      height: auto;
-      display: block;
+      height: 130px;
       object-fit: cover;
-      cursor: pointer;
-      transition: transform 0.2s ease;
+      display: block;
     }
 
-    .notice-img:hover {
-      transform: scale(1.01);
+    .file-size-badge {
+      font-size: 11px;
+      color: var(--text-secondary);
+      background: var(--input-bg);
+      padding: 3px 8px;
+      border-radius: 6px;
+      border: 1px solid var(--border-color);
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-weight: 600;
     }
 
     .notice-time {
@@ -965,7 +988,7 @@
           </div>
 
           <div class="form-group">
-            <label>Attach Image (Max 10 MB)</label>
+            <label>Attach File/Image (Max 10 MB)</label>
             <input type="file" id="noticeImageInput" accept="image/*" />
           </div>
 
@@ -989,7 +1012,7 @@
           Provide admin password to remove this item.
         </p>
         <div class="form-group">
-          <label>Admin Password</label>
+          <label style="color:var(--danger); font-weight:bold;">Admin Password</label>
           <input type="password" id="adminPasswordInput" placeholder="Enter password" />
         </div>
         <div class="status-msg" id="adminStatus"></div>
@@ -1053,15 +1076,26 @@
     let pendingDeleteTarget = null;
     let tempAvatarBase64 = null;
     let tempNoticeImgBase64 = null;
+    let tempNoticeFileSize = null;
     let isSyncing = false;
 
     let localStoreData = {
       users: [],
       messages: [],
-      notices: []
+      notices: [],
+      deletedIds: []
     };
 
-    // Helper: Merge Arrays uniquely by item ID to prevent data loss or overwriting
+    // Helper: File Size Formatter
+    function formatFileSize(bytes) {
+      if (!bytes || bytes === 0) return '0 B';
+      const k = 1024;
+      const sizes = ['B', 'KB', 'MB', 'GB'];
+      const i = Math.floor(Math.log(bytes) / Math.log(k));
+      return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+    }
+
+    // Helper: Merge Arrays uniquely by item ID
     function mergeArraysById(targetArr, sourceArr) {
       if (!Array.isArray(sourceArr)) return targetArr || [];
       const map = new Map();
@@ -1102,13 +1136,11 @@
     // App Initialization & Persistent User Identity
     // =========================================================================
     window.addEventListener('DOMContentLoaded', async () => {
-      // 1. Try to load registered user
       const savedUser = localStorage.getItem('bou_chat_user');
       if (savedUser) {
         try { currentUser = JSON.parse(savedUser); } catch(e) {}
       }
 
-      // 2. Try to load persistent guest user if not registered
       if (!currentUser) {
         const savedGuest = localStorage.getItem('bou_guest_user');
         if (savedGuest) {
@@ -1116,7 +1148,6 @@
         }
       }
 
-      // 3. Generate new persistent guest user if missing
       if (!currentUser) {
         currentUser = {
           id: 'usr_guest_' + Date.now() + '_' + Math.floor(100 + Math.random() * 900),
@@ -1183,14 +1214,13 @@
     });
 
     // =========================================================================
-    // Cloud Image Uploading Helper (Cloudinary HD Optimization API & 10MB Check)
+    // Cloud Image Uploading Helper
     // =========================================================================
     async function uploadToCloudinary(file) {
       if (!file) return null;
 
-      // 10 MB File Size Validation Check
       if (file.size > MAX_FILE_SIZE_BYTES) {
-        alert("⚠️ File size exceeds 10 MB limit!\nPlease choose a smaller image.");
+        alert("⚠️ File size exceeds 10 MB limit!\nPlease choose a smaller file.");
         return null;
       }
 
@@ -1206,7 +1236,6 @@
 
         const data = await res.json();
         if (data.secure_url) {
-          // Dynamic Cloudinary HD Optimization URL Transformation
           let optimizedUrl = data.secure_url.replace('/upload/', '/upload/q_auto,f_auto/');
           return optimizedUrl;
         } else {
@@ -1287,7 +1316,6 @@
 
     document.getElementById('closeModalBtn').addEventListener('click', hideAuthModal);
 
-    // Profile Avatar Image Selection & Cloud Upload
     document.getElementById('authAvatarInput').addEventListener('change', async function() {
       const file = this.files[0];
       if (!file) return;
@@ -1433,6 +1461,7 @@
       noticeAdminStatus.textContent = '';
       publishNoticeBtn.disabled = false;
       tempNoticeImgBase64 = null;
+      tempNoticeFileSize = null;
       adminNoticeModal.classList.remove('hidden');
     });
 
@@ -1440,32 +1469,36 @@
       adminNoticeModal.classList.add('hidden');
     });
 
-    // Upload Notice Image to Cloud instantly upon selection (With HD Optimization)
+    // Upload Notice Image/File and calculate file size
     document.getElementById('noticeImageInput').addEventListener('change', async function() {
       const file = this.files[0];
       if (!file) return;
 
+      tempNoticeFileSize = formatFileSize(file.size);
+
       try {
         publishNoticeBtn.disabled = true;
-        noticeAdminStatus.textContent = '⏳ Uploading HD image to cloud... Please wait.';
+        noticeAdminStatus.textContent = '⏳ Uploading file to cloud... Please wait.';
         noticeAdminStatus.className = 'status-msg';
 
         const imgUrl = await uploadToCloudinary(file);
         
         if(imgUrl) {
           tempNoticeImgBase64 = imgUrl;
-          noticeAdminStatus.textContent = '✅ Image uploaded successfully in HD!';
+          noticeAdminStatus.textContent = `✅ File uploaded (${tempNoticeFileSize})!`;
           noticeAdminStatus.className = 'status-msg info';
           publishNoticeBtn.disabled = false;
         } else {
           this.value = '';
+          tempNoticeFileSize = null;
           noticeAdminStatus.textContent = '❌ Upload failed or cancelled.';
           noticeAdminStatus.className = 'status-msg error';
           publishNoticeBtn.disabled = false;
         }
       } catch (e) {
         this.value = '';
-        noticeAdminStatus.textContent = '❌ Failed to upload image.';
+        tempNoticeFileSize = null;
+        noticeAdminStatus.textContent = '❌ Failed to upload file.';
         noticeAdminStatus.className = 'status-msg error';
         publishNoticeBtn.disabled = false;
       }
@@ -1493,6 +1526,7 @@
         title: title,
         content: content,
         image_url: tempNoticeImgBase64,
+        file_size: tempNoticeFileSize,
         created_at: new Date().toISOString()
       };
 
@@ -1526,9 +1560,13 @@
       
       let imgHtml = '';
       if (notice.image_url) {
+        const sizeBadge = notice.file_size ? `<div class="file-size-badge">📁 File size: ${escapeHtml(notice.file_size)}</div>` : '';
         imgHtml = `
-          <div class="notice-img-container">
-            <img src="${notice.image_url}" class="notice-img" alt="Notice Image" onclick="openLightbox('${notice.image_url}')" loading="lazy" />
+          <div class="notice-media-wrapper">
+            <div class="notice-img-container" onclick="openLightbox('${notice.image_url}')" title="Click to view full size">
+              <img src="${notice.image_url}" class="notice-img" alt="Notice Attachment" loading="lazy" />
+            </div>
+            ${sizeBadge}
           </div>
         `;
       }
@@ -1750,10 +1788,21 @@
             const remoteMsgs = json.record.messages || [];
             const remoteNotices = json.record.notices || [];
             const remoteUsers = json.record.users || [];
+            const remoteDeletedIds = json.record.deletedIds || [];
 
-            // Smart Non-Destructive Merge
-            localStoreData.messages = mergeArraysById(localStoreData.messages, remoteMsgs);
-            localStoreData.notices = mergeArraysById(localStoreData.notices, remoteNotices);
+            // Merge deleted IDs tracking list
+            localStoreData.deletedIds = Array.from(new Set([
+              ...(localStoreData.deletedIds || []),
+              ...remoteDeletedIds
+            ]));
+
+            // Filter out deleted messages & notices
+            const mergedMsgs = mergeArraysById(localStoreData.messages, remoteMsgs);
+            localStoreData.messages = mergedMsgs.filter(m => m && m.id && !localStoreData.deletedIds.includes(m.id));
+
+            const mergedNotices = mergeArraysById(localStoreData.notices, remoteNotices);
+            localStoreData.notices = mergedNotices.filter(n => n && n.id && !localStoreData.deletedIds.includes(n.id));
+
             localStoreData.users = mergeArraysById(localStoreData.users, remoteUsers);
 
             // Sort messages chronologically
@@ -1773,16 +1822,29 @@
     async function saveToJSONBin() {
       if (!JSONBIN_BIN_ID) return;
       try {
-        // Fetch latest remote data before writing to prevent race conditions
         const getRes = await fetch(JSONBIN_URL + '/latest', {
           headers: { 'X-Access-Key': JSONBIN_ACCESS_KEY, 'Cache-Control': 'no-cache' }
         });
         if (getRes.ok) {
           const latestJson = await getRes.json();
           if (latestJson && latestJson.record) {
-            localStoreData.messages = mergeArraysById(localStoreData.messages, latestJson.record.messages || []);
-            localStoreData.notices = mergeArraysById(localStoreData.notices, latestJson.record.notices || []);
-            localStoreData.users = mergeArraysById(localStoreData.users, latestJson.record.users || []);
+            const remoteMsgs = latestJson.record.messages || [];
+            const remoteNotices = latestJson.record.notices || [];
+            const remoteUsers = latestJson.record.users || [];
+            const remoteDeletedIds = latestJson.record.deletedIds || [];
+
+            localStoreData.deletedIds = Array.from(new Set([
+              ...(localStoreData.deletedIds || []),
+              ...remoteDeletedIds
+            ]));
+
+            const mergedMsgs = mergeArraysById(localStoreData.messages, remoteMsgs);
+            localStoreData.messages = mergedMsgs.filter(m => m && m.id && !localStoreData.deletedIds.includes(m.id));
+
+            const mergedNotices = mergeArraysById(localStoreData.notices, remoteNotices);
+            localStoreData.notices = mergedNotices.filter(n => n && n.id && !localStoreData.deletedIds.includes(n.id));
+
+            localStoreData.users = mergeArraysById(localStoreData.users, remoteUsers);
           }
         }
 
@@ -1817,6 +1879,9 @@
       }
 
       if (pendingDeleteTarget) {
+        if (!localStoreData.deletedIds) localStoreData.deletedIds = [];
+        localStoreData.deletedIds.push(pendingDeleteTarget.id);
+
         if (pendingDeleteTarget.type === 'chat') {
           localStoreData.messages = localStoreData.messages.filter(m => m.id !== pendingDeleteTarget.id);
           const elem = document.getElementById(pendingDeleteTarget.id);
@@ -1839,9 +1904,7 @@
       const messageArea = document.getElementById('messageArea');
 
       if (!localStoreData.messages || localStoreData.messages.length === 0) {
-        if (!messageArea.querySelector('.empty-chat-msg')) {
-          messageArea.innerHTML = '<div class="empty-chat-msg" style="text-align:center; color: var(--text-secondary); font-size:13px; margin-top:30px;">Welcome to Lounge Chat! Start messaging below.</div>';
-        }
+        messageArea.innerHTML = '<div class="empty-chat-msg" style="text-align:center; color: var(--text-secondary); font-size:13px; margin-top:30px;">Welcome to Lounge Chat! Start messaging below.</div>';
         return;
       }
 
@@ -1849,6 +1912,14 @@
       if (emptyNotice) emptyNotice.remove();
 
       const isAtBottom = (messageArea.scrollHeight - messageArea.scrollTop - messageArea.clientHeight) < 120;
+
+      const currentMsgRows = messageArea.querySelectorAll('.msg-row');
+      currentMsgRows.forEach(row => {
+        const isPresent = localStoreData.messages.some(m => m.id === row.id);
+        if (!isPresent) {
+          row.remove();
+        }
+      });
 
       localStoreData.messages.forEach(msg => {
         if (!document.getElementById(msg.id)) {
@@ -1912,7 +1983,6 @@
       document.getElementById('imageInput').click();
     });
 
-    // Chat Image Sent - Upload to Cloudinary directly
     document.getElementById('imageInput').addEventListener('change', async function () {
       const file = this.files[0];
       if (!file) return;
