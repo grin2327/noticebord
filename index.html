@@ -14,8 +14,8 @@
 
   <title>B.O.U Lounge 2026-2027</title>
 
-  <!-- Dynamic Inline Web Manifest for Mobile PWA Installation -->
-  <link rel="manifest" id="manifestPlaceholder">
+  <!-- External Web Manifest Link for GitHub Pages PWA -->
+  <link rel="manifest" href="manifest.json" id="manifestPlaceholder">
 
   <style>
     /* Color Palette Definitions */
@@ -1055,6 +1055,18 @@
       </div>
     </div>
 
+    <!-- PWA Installation Guide Modal (iOS & Unsupported Browsers) -->
+    <div class="modal-overlay hidden" id="pwaInstallModal">
+      <div class="modal-card">
+        <button class="modal-close-btn" id="closePwaModalBtn" type="button">&times;</button>
+        <h3 style="margin-bottom:12px;">📱 App Installation Guide</h3>
+        <div id="pwaInstallInstructions" style="font-size:13px; color:var(--text-secondary); line-height:1.6; text-align:left;">
+          <!-- Custom step-by-step instructions inserted via JS -->
+        </div>
+        <button type="button" class="btn-primary" id="gotItPwaBtn" style="margin-top:16px;">ঠিক আছে</button>
+      </div>
+    </div>
+
     <!-- Interactive Image Lightbox Modal with Pan & Zoom -->
     <div class="lightbox-overlay hidden" id="lightboxModal">
       <div class="lightbox-toolbar">
@@ -1072,53 +1084,25 @@
 
   <script>
     // =========================================================================
-    // Universal Dynamic PWA Manifest Configuration
+    // Check Standalone Mode Status
     // =========================================================================
-    const manifestData = {
-      "name": "BOU Lounge 2026-2027",
-      "short_name": "BOU Lounge",
-      "description": "Official BOU Lounge App",
-      "start_url": "./",
-      "scope": "./",
-      "display": "standalone",
-      "background_color": "#0f172a",
-      "theme_color": "#0f172a",
-      "orientation": "portrait",
-      "icons": [
-        {
-          "src": "https://via.placeholder.com/192/0f172a/ffffff?text=BOU",
-          "sizes": "192x192",
-          "type": "image/png",
-          "purpose": "any maskable"
-        },
-        {
-          "src": "https://via.placeholder.com/512/0f172a/ffffff?text=BOU",
-          "sizes": "512x512",
-          "type": "image/png",
-          "purpose": "any maskable"
-        }
-      ]
-    };
-    
-    // Convert Manifest to Data URI for seamless browser PWA detection
-    const manifestJsonString = JSON.stringify(manifestData);
-    const manifestDataUri = 'data:application/manifest+json;charset=utf-8,' + encodeURIComponent(manifestJsonString);
-    document.getElementById('manifestPlaceholder').setAttribute('href', manifestDataUri);
-
-    // Function to check if running as an installed standalone app
     function isRunningStandalone() {
       return (window.matchMedia('(display-mode: standalone)').matches) || 
              (window.navigator.standalone === true) || 
              (document.referrer.includes('android-app://'));
     }
 
+    // Detect Device Platform
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+
     // =========================================================================
-    // Direct Mobile App Installation Handler (PWA)
+    // Universal Smart PWA Installation Handler
     // =========================================================================
     let deferredPrompt = null;
     const installAppBtn = document.getElementById('installAppBtn');
+    const pwaInstallModal = document.getElementById('pwaInstallModal');
+    const pwaInstallInstructions = document.getElementById('pwaInstallInstructions');
 
-    // Hide install button if already opened as installed App
     if (isRunningStandalone()) {
       installAppBtn.style.display = 'none';
     }
@@ -1144,8 +1128,48 @@
           installAppBtn.style.display = 'none';
         }
         deferredPrompt = null;
+      } else if (isIOS) {
+        showPwaGuide('ios');
+      } else {
+        showPwaGuide('general');
       }
     });
+
+    function showPwaGuide(type) {
+      if (type === 'ios') {
+        pwaInstallInstructions.innerHTML = `
+          <p style="margin-bottom:10px;"><strong>iPhone / iPad (iOS) এ ইনস্টল করার উপায়:</strong></p>
+          <ol style="padding-left:20px; margin-bottom:10px;">
+            <li>Safari ব্রাউজারের নিচে থাকা <strong>Share (শেয়ার ⎋)</strong> বাটনে প্রেস করুন।</li>
+            <li>একটু স্ক্রোল করে <strong>'Add to Home Screen' (হোম স্ক্রিনে যোগ করুন)</strong> অপশনে ট্যাপ করুন।</li>
+            <li>উপরে ডান কোণায় <strong>'Add'</strong> এ ট্যাপ করলেই অ্যাপটি হোম স্ক্রিনে চলে আসবে।</li>
+          </ol>
+        `;
+      } else {
+        pwaInstallInstructions.innerHTML = `
+          <p style="margin-bottom:10px;"><strong>কম্পিউটার বা অ্যান্ড্রয়েডে ম্যানুয়ালি ইনস্টল করার উপায়:</strong></p>
+          <ol style="padding-left:20px; margin-bottom:10px;">
+            <li>ব্রাউজারের উপরে ডানদিকে <strong>৩টি ডট (Menu ⋮)</strong> অপশনে ক্লিক করুন।</li>
+            <li><strong>'Save and share'</strong> অথবা <strong>'Install BOU Lounge'</strong> অপশনটিতে সিলেক্ট করুন।</li>
+            <li>পপআপে <strong>Install</strong> সিলেক্ট করলে সরাসরি অ্যাপ হিসেবে ডাউনলোড হবে।</li>
+          </ol>
+          <p style="font-size:11px; color:var(--text-secondary);">* নিশ্চিত করুন আপনার GitHub রিপোজিটরিতে manifest.json এবং sw.js ফাইল দুটি আপলোড করা আছে।</p>
+        `;
+      }
+      pwaInstallModal.classList.remove('hidden');
+    }
+
+    document.getElementById('closePwaModalBtn').addEventListener('click', () => pwaInstallModal.classList.add('hidden'));
+    document.getElementById('gotItPwaBtn').addEventListener('click', () => pwaInstallModal.classList.add('hidden'));
+
+    // Service Worker Registration from actual sw.js file
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js').catch(err => {
+          console.log('SW registration failed:', err);
+        });
+      });
+    }
 
     // =========================================================================
     // Global Configurations & Online API
@@ -2133,20 +2157,6 @@
     function escapeHtml(text) {
       if (!text) return '';
       return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-    }
-
-    // Inline Service Worker Registration for PWA Standalone Mode
-    if ('serviceWorker' in navigator) {
-      window.addEventListener('load', () => {
-        const swCode = `
-          self.addEventListener('install', e => e.waitUntil(self.skipWaiting()));
-          self.addEventListener('activate', e => e.waitUntil(self.clients.claim()));
-          self.addEventListener('fetch', e => e.respondWith(fetch(e.request).catch(() => caches.match(e.request))));
-        `;
-        const blob = new Blob([swCode], { type: 'application/javascript' });
-        const swUrl = URL.createObjectURL(blob);
-        navigator.serviceWorker.register(swUrl).catch(() => {});
-      });
     }
   </script>
 </body>
