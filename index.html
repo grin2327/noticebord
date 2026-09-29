@@ -1,25 +1,56 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="light">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <meta name="theme-color" content="#0a0f1d">
-  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#ffffff" id="themeColorMeta">
   <title>B.O.U Lounge 2026-2027</title>
+
+  <!-- Dynamic Inline Web Manifest for Mobile PWA Installation -->
+  <link rel="manifest" id="manifestPlaceholder">
+
   <style>
-    :root {
-      --bg: #0a0f1d;
-      --panel: #111827;
-      --panel-header: #0d1527;
-      --border-color: #1f2937;
-      --text-primary: #ffffff;
-      --text-secondary: #94a3b8;
-      --accent-blue: #00d2ff;
-      --accent-primary: #2563eb;
-      --msg-out: linear-gradient(135deg, #2563eb, #00d2ff);
-      --msg-in: #1e293b;
+    /* Color Palette Definitions */
+    :root, [data-theme="light"] {
+      --bg: #f8fafc;
+      --panel: #ffffff;
+      --panel-header: #ffffff;
+      --border-color: #e2e8f0;
+      --text-primary: #0f172a;
+      --text-secondary: #64748b;
+      --accent-blue: #3b82f6;
+      --accent-primary: #0f172a;
+      --msg-out: linear-gradient(135deg, #0f172a, #334155);
+      --msg-out-text: #ffffff;
+      --msg-in: #ffffff;
+      --msg-in-text: #0f172a;
+      --card-bg: #ffffff;
+      --input-bg: #f1f5f9;
+      --badge-bg: #f1f5f9;
       --danger: #ef4444;
       --success: #10b981;
+      --body-outer: linear-gradient(135deg, #cbd5e1, #e2e8f0);
+    }
+
+    [data-theme="dark"] {
+      --bg: #0b0f19;
+      --panel: #111827;
+      --panel-header: #111827;
+      --border-color: #1f2937;
+      --text-primary: #f9fafb;
+      --text-secondary: #9ca3af;
+      --accent-blue: #60a5fa;
+      --accent-primary: #f9fafb;
+      --msg-out: linear-gradient(135deg, #374151, #1f2937);
+      --msg-out-text: #ffffff;
+      --msg-in: #1f2937;
+      --msg-in-text: #f9fafb;
+      --card-bg: #1f2937;
+      --input-bg: #111827;
+      --badge-bg: #374151;
+      --danger: #f87171;
+      --success: #34d399;
+      --body-outer: linear-gradient(135deg, #030712, #111827);
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
@@ -28,9 +59,10 @@
       height: 100dvh;
       width: 100%;
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-      background: #060911;
+      background: var(--body-outer);
       color: var(--text-primary);
       overflow: hidden;
+      transition: background 0.3s ease, color 0.3s ease;
     }
 
     /* App Main Container */
@@ -44,6 +76,7 @@
       margin: 0 auto;
       background: var(--bg);
       position: relative;
+      transition: background 0.3s ease;
     }
 
     @media (min-width: 850px) {
@@ -51,13 +84,12 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        background: #04060c;
       }
       .app-container {
         height: 95vh;
-        border-radius: 16px;
+        border-radius: 20px;
         border: 1px solid var(--border-color);
-        box-shadow: 0 12px 32px rgba(0, 210, 255, 0.05);
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
         overflow: hidden;
       }
     }
@@ -69,7 +101,7 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 0 12px;
+      padding: 0 16px;
       border-bottom: 1px solid var(--border-color);
       flex-shrink: 0;
       z-index: 10;
@@ -78,7 +110,7 @@
     .brand-section {
       display: flex;
       align-items: center;
-      gap: 10px;
+      gap: 12px;
       overflow: hidden;
     }
 
@@ -86,12 +118,13 @@
       width: 38px;
       height: 38px;
       border-radius: 50%;
-      background: var(--accent-primary);
+      background: var(--msg-out);
+      color: #ffffff;
       display: grid;
       place-items: center;
       font-size: 18px;
       flex-shrink: 0;
-      box-shadow: 0 0 12px rgba(37, 99, 235, 0.4);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
     }
 
     .group-details .title {
@@ -117,21 +150,20 @@
       border-radius: 50%;
       background: var(--success);
       display: inline-block;
-      box-shadow: 0 0 8px var(--success);
     }
 
     .header-actions {
       display: flex;
       align-items: center;
-      gap: 6px;
+      gap: 8px;
       flex-shrink: 0;
     }
 
     .btn-install {
-      background: var(--accent-primary);
-      color: white;
+      background: var(--msg-out);
+      color: #ffffff;
       border: none;
-      padding: 6px 10px;
+      padding: 6px 12px;
       border-radius: 20px;
       font-size: 11px;
       font-weight: bold;
@@ -140,44 +172,34 @@
       align-items: center;
       gap: 4px;
       white-space: nowrap;
-      transition: background 0.2s ease, transform 0.1s ease;
+      transition: transform 0.15s ease, opacity 0.2s ease;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.15);
     }
 
-    .btn-install:hover { background: #1d4ed8; }
+    .btn-install:hover { opacity: 0.9; }
     .btn-install:active { transform: scale(0.95); }
 
     .user-profile-btn {
       width: 36px;
       height: 36px;
       border-radius: 50%;
-      background: #1e293b;
+      background: var(--input-bg);
       overflow: hidden;
       cursor: pointer;
-      border: 2px solid var(--accent-blue);
+      border: 2px solid var(--border-color);
       display: flex;
       align-items: center;
       justify-content: center;
       font-weight: bold;
-      color: white;
+      color: var(--text-primary);
       font-size: 13px;
       flex-shrink: 0;
-      transition: transform 0.2s ease, box-shadow 0.2s ease;
-    }
-
-    .user-profile-btn:hover {
-      box-shadow: 0 0 10px rgba(0, 210, 255, 0.5);
-    }
-
-    .user-profile-btn img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
     }
 
     /* Navigation Tabs Bar */
     .nav-tabs-bar {
       display: flex;
-      background: #0d1527;
+      background: var(--panel);
       border-bottom: 1px solid var(--border-color);
       flex-shrink: 0;
     }
@@ -200,9 +222,10 @@
     }
 
     .nav-tab-btn.active {
-      color: var(--accent-blue);
-      border-bottom-color: var(--accent-blue);
-      background: rgba(0, 210, 255, 0.06);
+      color: var(--text-primary);
+      border-bottom-color: var(--text-primary);
+      background: var(--bg);
+      font-weight: 700;
     }
 
     /* Content Display Areas */
@@ -212,6 +235,7 @@
       flex-direction: column;
       overflow: hidden;
       position: relative;
+      background: var(--bg);
     }
 
     /* Public Chat Area */
@@ -221,13 +245,13 @@
       padding: 16px;
       display: flex;
       flex-direction: column;
-      gap: 10px;
+      gap: 12px;
       scroll-behavior: smooth;
     }
 
     .message-area::-webkit-scrollbar, .notice-feed::-webkit-scrollbar { width: 6px; }
     .message-area::-webkit-scrollbar-thumb, .notice-feed::-webkit-scrollbar-thumb {
-      background: rgba(255, 255, 255, 0.15);
+      background: var(--border-color);
       border-radius: 10px;
     }
 
@@ -252,14 +276,14 @@
       width: 28px;
       height: 28px;
       border-radius: 50%;
-      background: #1e293b;
+      background: var(--input-bg);
       object-fit: cover;
       flex-shrink: 0;
       font-size: 11px;
       display: grid;
       place-items: center;
       font-weight: bold;
-      color: #fff;
+      color: var(--text-primary);
       border: 1px solid var(--border-color);
       overflow: hidden;
     }
@@ -276,17 +300,18 @@
       line-height: 1.4;
       word-break: break-word;
       position: relative;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.03);
     }
 
     .msg-row.sent .msg-bubble {
       background: var(--msg-out);
-      color: #ffffff;
+      color: var(--msg-out-text);
       border-bottom-right-radius: 4px;
     }
 
     .msg-row.received .msg-bubble {
       background: var(--msg-in);
-      color: var(--text-primary);
+      color: var(--msg-in-text);
       border: 1px solid var(--border-color);
       border-bottom-left-radius: 4px;
     }
@@ -312,18 +337,19 @@
       display: block;
       cursor: pointer;
       object-fit: cover;
+      border: 1px solid var(--border-color);
     }
 
     .msg-time {
       font-size: 10px;
-      color: rgba(255, 255, 255, 0.7);
       margin-top: 4px;
       text-align: right;
+      opacity: 0.8;
     }
 
     /* Footer Chat Inputs & Guest Notice */
     .chat-footer {
-      background: var(--panel-header);
+      background: var(--panel);
       padding: 10px 14px;
       border-top: 1px solid var(--border-color);
       flex-shrink: 0;
@@ -339,27 +365,24 @@
     .chat-footer input[type="text"] {
       flex: 1;
       height: 42px;
-      background: #1e293b;
+      background: var(--input-bg);
       border: 1px solid var(--border-color);
       border-radius: 20px;
       padding: 0 16px;
       color: var(--text-primary);
-      font-size: 16px;
+      font-size: 15px;
       user-select: text;
+      transition: border-color 0.2s ease;
     }
 
     .chat-footer input[type="text"]:focus {
-      border-color: var(--accent-blue);
+      border-color: var(--text-primary);
       outline: none;
-    }
-
-    .chat-footer input[type="text"]::placeholder {
-      color: var(--text-secondary);
     }
 
     .btn-icon {
       background: transparent;
-      color: var(--accent-blue);
+      color: var(--text-secondary);
       border: none;
       width: 38px;
       height: 38px;
@@ -369,13 +392,10 @@
       cursor: pointer;
       flex-shrink: 0;
       font-size: 20px;
-      transition: background 0.2s;
     }
 
-    .btn-icon:hover { background: rgba(255, 255, 255, 0.08); }
-
     .btn-send {
-      background: var(--accent-primary);
+      background: var(--msg-out);
       color: white;
       border: none;
       width: 40px;
@@ -385,14 +405,11 @@
       place-items: center;
       cursor: pointer;
       flex-shrink: 0;
-      transition: transform 0.15s ease, background 0.2s ease;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.2);
     }
 
-    .btn-send:hover { background: #1d4ed8; }
-    .btn-send:active { transform: scale(0.9); }
-
     .guest-notice-bar {
-      background: #111827;
+      background: var(--badge-bg);
       padding: 8px 12px;
       border-radius: 12px;
       text-align: center;
@@ -407,10 +424,10 @@
     }
 
     .btn-guest-login {
-      background: var(--accent-primary);
+      background: var(--msg-out);
       color: white;
       border: none;
-      padding: 4px 12px;
+      padding: 5px 14px;
       border-radius: 16px;
       font-size: 11px;
       font-weight: bold;
@@ -435,21 +452,18 @@
     }
 
     .btn-admin-add {
-      background: var(--accent-primary);
+      background: var(--msg-out);
       color: white;
       border: none;
       padding: 8px 14px;
       border-radius: 20px;
-      font-size: 13px;
+      font-size: 12px;
       font-weight: bold;
       cursor: pointer;
       display: flex;
       align-items: center;
       gap: 6px;
-      transition: background 0.2s ease;
     }
-
-    .btn-admin-add:hover { background: #1d4ed8; }
 
     .notice-feed {
       flex: 1;
@@ -460,11 +474,12 @@
     }
 
     .notice-card {
-      background: var(--panel);
+      background: var(--card-bg);
       border: 1px solid var(--border-color);
-      border-radius: 14px;
+      border-radius: 16px;
       padding: 16px;
       position: relative;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
     }
 
     .notice-card-header {
@@ -475,13 +490,13 @@
     }
 
     .notice-badge {
-      background: rgba(0, 210, 255, 0.15);
-      color: var(--accent-blue);
+      background: var(--badge-bg);
+      color: var(--text-primary);
       padding: 3px 10px;
       border-radius: 12px;
       font-size: 11px;
       font-weight: bold;
-      border: 1px solid rgba(0, 210, 255, 0.3);
+      border: 1px solid var(--border-color);
     }
 
     .notice-title {
@@ -493,7 +508,7 @@
 
     .notice-body {
       font-size: 14px;
-      color: #cbd5e1;
+      color: var(--text-secondary);
       line-height: 1.5;
       white-space: pre-line;
       word-break: break-word;
@@ -503,7 +518,7 @@
       width: 100%;
       max-height: 320px;
       object-fit: cover;
-      border-radius: 10px;
+      border-radius: 12px;
       margin-top: 10px;
       cursor: pointer;
       border: 1px solid var(--border-color);
@@ -516,18 +531,49 @@
     }
 
     .btn-notice-delete {
-      background: rgba(239, 68, 68, 0.15);
+      background: rgba(239, 68, 68, 0.1);
       color: var(--danger);
-      border: 1px solid var(--danger);
+      border: 1px solid rgba(239, 68, 68, 0.3);
       padding: 4px 10px;
       border-radius: 6px;
       font-size: 11px;
       cursor: pointer;
       font-weight: bold;
-      transition: background 0.2s ease;
     }
 
-    .btn-notice-delete:hover { background: rgba(239, 68, 68, 0.3); }
+    /* Theme Switcher Toggle Control */
+    .theme-switch-box {
+      display: flex;
+      background: var(--input-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 4px;
+      margin-bottom: 16px;
+      gap: 4px;
+    }
+
+    .theme-btn {
+      flex: 1;
+      padding: 8px;
+      border: none;
+      background: transparent;
+      color: var(--text-secondary);
+      font-size: 12px;
+      font-weight: 700;
+      border-radius: 8px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      transition: all 0.2s ease;
+    }
+
+    .theme-btn.active {
+      background: var(--panel);
+      color: var(--text-primary);
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    }
 
     /* Emoji Picker Box */
     .emoji-picker {
@@ -536,12 +582,12 @@
       left: 14px;
       background: var(--panel);
       border: 1px solid var(--border-color);
-      border-radius: 12px;
+      border-radius: 14px;
       padding: 10px;
       display: grid;
       grid-template-columns: repeat(7, 1fr);
       gap: 6px;
-      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
       z-index: 50;
       max-width: 310px;
     }
@@ -554,90 +600,13 @@
       padding: 6px;
       border-radius: 6px;
     }
-    .emoji-btn:hover { background: rgba(255, 255, 255, 0.1); }
-
-    /* Zoomable Lightbox Modal System */
-    .lightbox-overlay {
-      position: absolute;
-      top: 0; left: 0; width: 100%; height: 100%;
-      background: rgba(4, 6, 12, 0.95);
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      z-index: 300;
-      overflow: hidden;
-      touch-action: none;
-    }
-
-    .lightbox-wrapper {
-      width: 100%;
-      height: 100%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      overflow: hidden;
-      position: relative;
-    }
-
-    .lightbox-img {
-      max-width: 90%;
-      max-height: 85vh;
-      object-fit: contain;
-      transition: transform 0.1s ease-out;
-      transform-origin: center center;
-      cursor: grab;
-    }
-
-    .lightbox-controls {
-      position: absolute;
-      bottom: 20px;
-      display: flex;
-      gap: 12px;
-      background: rgba(17, 24, 39, 0.85);
-      padding: 8px 16px;
-      border-radius: 30px;
-      border: 1px solid var(--border-color);
-      z-index: 310;
-    }
-
-    .zoom-btn {
-      background: #1e293b;
-      color: white;
-      border: none;
-      width: 36px;
-      height: 36px;
-      border-radius: 50%;
-      font-size: 16px;
-      font-weight: bold;
-      cursor: pointer;
-      display: grid;
-      place-items: center;
-    }
-
-    .lightbox-close {
-      position: absolute;
-      top: 16px;
-      right: 16px;
-      background: rgba(255, 255, 255, 0.15);
-      color: white;
-      border: none;
-      font-size: 22px;
-      width: 40px;
-      height: 40px;
-      border-radius: 50%;
-      cursor: pointer;
-      display: grid;
-      place-items: center;
-      z-index: 310;
-    }
 
     /* Modals & Popups */
     .modal-overlay {
       position: absolute;
       top: 0; left: 0; width: 100%; height: 100%;
-      background: rgba(0, 0, 0, 0.8);
-      backdrop-filter: blur(4px);
+      background: rgba(0, 0, 0, 0.5);
+      backdrop-filter: blur(6px);
       display: flex;
       justify-content: center;
       align-items: center;
@@ -651,10 +620,10 @@
       background: var(--panel);
       width: 100%;
       max-width: 380px;
-      padding: 22px;
-      border-radius: 16px;
+      padding: 24px;
+      border-radius: 20px;
       border: 1px solid var(--border-color);
-      box-shadow: 0 12px 32px rgba(0,0,0,0.8);
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
       position: relative;
     }
 
@@ -696,8 +665,9 @@
     }
 
     .auth-tab.active {
-      color: var(--accent-blue);
-      background: rgba(0, 210, 255, 0.12);
+      color: var(--text-primary);
+      background: var(--input-bg);
+      font-weight: 700;
     }
 
     .avatar-upload-wrapper {
@@ -712,104 +682,76 @@
       width: 75px;
       height: 75px;
       border-radius: 50%;
-      background: #1e293b;
+      background: var(--input-bg);
       object-fit: cover;
-      border: 2px solid var(--accent-blue);
+      border: 2px solid var(--border-color);
     }
 
     .btn-upload-pic {
       font-size: 12px;
-      color: var(--accent-blue);
+      color: var(--text-primary);
       cursor: pointer;
       font-weight: 600;
+      text-decoration: underline;
     }
 
     .form-group { margin-bottom: 12px; }
     .form-group label { display: block; font-size: 12px; color: var(--text-secondary); margin-bottom: 4px; }
     .form-group input, .form-group textarea {
-      width: 100%; background: #1e293b; border: 1px solid var(--border-color);
-      border-radius: 8px; padding: 10px 12px; color: white; outline: none; font-size: 16px;
+      width: 100%; background: var(--input-bg); border: 1px solid var(--border-color);
+      border-radius: 8px; padding: 10px 12px; color: var(--text-primary); outline: none; font-size: 15px;
       user-select: text; font-family: inherit;
-    }
-    .form-group input:focus, .form-group textarea:focus {
-      border-color: var(--accent-blue);
     }
 
     .btn-primary {
-      width: 100%; height: 40px; background: var(--accent-primary);
-      border: none; color: white; font-weight: 700; border-radius: 8px; cursor: pointer; margin-top: 8px; font-size: 14px;
-      transition: background 0.2s ease;
+      width: 100%; height: 42px;
+      background: var(--msg-out);
+      border: none; color: white; font-weight: 700; border-radius: 10px; cursor: pointer; margin-top: 8px; font-size: 14px;
     }
 
-    .btn-primary:hover { background: #1d4ed8; }
-
     .btn-danger {
-      width: 100%; height: 38px; background: rgba(239, 68, 68, 0.15); border: 1px solid var(--danger);
-      color: var(--danger); font-weight: 700; border-radius: 8px; cursor: pointer; margin-top: 8px; font-size: 13px;
+      width: 100%; height: 38px; background: rgba(239, 68, 68, 0.1); border: 1px solid var(--danger);
+      color: var(--danger); font-weight: 700; border-radius: 10px; cursor: pointer; margin-top: 8px; font-size: 13px;
     }
 
     .status-msg { font-size: 12px; text-align: center; margin-top: 8px; min-height: 16px; }
     .status-msg.error { color: var(--danger); }
     .status-msg.info { color: var(--success); }
 
-    /* Loading Overlay */
-    .loading-overlay {
+    /* Lightbox Modal */
+    .lightbox-overlay {
       position: absolute;
       top: 0; left: 0; width: 100%; height: 100%;
-      background: rgba(4, 6, 12, 0.85);
-      display: flex; flex-direction: column; justify-content: center; align-items: center;
-      z-index: 250; gap: 12px;
+      background: rgba(0, 0, 0, 0.9);
+      display: flex; justify-content: center; align-items: center;
+      z-index: 300;
     }
 
-    .spinner {
-      width: 36px; height: 36px;
-      border: 3px solid rgba(255,255,255,0.1);
-      border-top-color: var(--accent-blue);
-      border-radius: 50%;
-      animation: spin 0.8s linear infinite;
+    .lightbox-img { max-width: 90%; max-height: 85vh; object-fit: contain; border-radius: 8px; }
+    .lightbox-close {
+      position: absolute; top: 16px; right: 16px; background: var(--panel);
+      color: var(--text-primary); border: none; font-size: 22px; width: 40px; height: 40px; border-radius: 50%; cursor: pointer;
     }
-
-    @keyframes spin { to { transform: rotate(360deg); } }
   </style>
 </head>
 <body>
 
   <div class="app-container">
 
-    <!-- Global Loading Overlay -->
-    <div class="loading-overlay hidden" id="loadingOverlay">
-      <div class="spinner"></div>
-      <div style="font-size:13px; color:var(--text-primary)" id="loadingText">Processing...</div>
-    </div>
-
-    <!-- Lightbox Modal with Pinch Zoom & Pan Controls -->
-    <div class="lightbox-overlay hidden" id="lightboxModal">
-      <button class="lightbox-close" id="lightboxClose">&times;</button>
-      <div class="lightbox-wrapper">
-        <img src="" id="lightboxImg" class="lightbox-img" alt="Zoomable View" />
-      </div>
-      <div class="lightbox-controls">
-        <button class="zoom-btn" id="zoomOutBtn" title="Zoom Out">-</button>
-        <button class="zoom-btn" id="zoomResetBtn" title="Reset Zoom" style="font-size: 12px;">↺</button>
-        <button class="zoom-btn" id="zoomInBtn" title="Zoom In">+</button>
-      </div>
-    </div>
-
     <!-- App Header Section -->
     <header class="app-header">
       <div class="brand-section">
         <div class="group-avatar">🎓</div>
         <div class="group-details">
-          <div class="title">B.O.U First Year 2026-2027</div>
+          <div class="title">B.O.U Lounge 2026-2027</div>
           <div class="subtitle"><span class="status-dot"></span> Official Lounge</div>
         </div>
       </div>
       <div class="header-actions">
-        <!-- Direct File Download App Button -->
-        <button id="downloadAppBtn" class="btn-install" title="Download HTML File">📥 App Download</button>
-        <!-- Install App Button for PWA -->
-        <button id="installAppBtn" class="btn-install hidden">📲 Install App</button>
-        <div class="user-profile-btn" id="profileBtn" title="User Profile">
+        <!-- Native Mobile PWA Install Button -->
+        <button id="installAppBtn" class="btn-install">📲 Install App</button>
+        <!-- User Profile Button -->
+        <div class="user-profile-btn" id="profileBtn" title="Account & Settings">
           <span id="userInitials">GST</span>
         </div>
       </div>
@@ -848,7 +790,7 @@
           <button class="emoji-btn">⚡</button>
         </div>
 
-        <!-- Logged In Users Input Bar -->
+        <!-- Inputs Bar -->
         <div class="footer-inputs" id="chatInputBar">
           <input type="file" id="imageInput" accept="image/*" class="hidden" />
           <button class="btn-icon" id="attachBtn" title="Send Photo">📷</button>
@@ -861,7 +803,7 @@
 
         <!-- Guest Users Notice Bar -->
         <div class="guest-notice-bar" id="guestNoticeBar">
-          <span>💡 Chatting as Guest. Set your name & profile photo:</span>
+          <span>💡 Chatting as Guest. Sign in/Register to customize profile:</span>
           <button class="btn-guest-login" id="guestLoginBtn">Login / Register</button>
         </div>
       </footer>
@@ -881,11 +823,21 @@
       </div>
     </section>
 
-    <!-- Auth & Profile Modal -->
+    <!-- Auth & Profile Settings Modal -->
     <div class="modal-overlay hidden" id="authModal">
       <div class="modal-card">
         <button class="modal-close-btn" id="closeModalBtn" type="button">&times;</button>
         
+        <!-- Theme Selection Selector -->
+        <div class="form-group">
+          <label>🎨 Choose App Theme</label>
+          <div class="theme-switch-box">
+            <button class="theme-btn active" id="themeSilverBtn" type="button">⚪ White & Silver</button>
+            <button class="theme-btn" id="themeDarkBtn" type="button">⚫ Dark & Onyx</button>
+          </div>
+        </div>
+
+        <!-- Top Navigation Tabs for Sign In vs Register -->
         <div class="auth-tabs" id="authTabs">
           <div class="auth-tab active" id="tabLogin">Sign In</div>
           <div class="auth-tab" id="tabRegister">Register</div>
@@ -905,9 +857,9 @@
             <input type="text" id="authName" placeholder="e.g. Jubayer Ahmed" />
           </div>
 
-          <div class="form-group">
+          <div class="form-group" id="phoneGroup">
             <label>Phone Number</label>
-            <input type="tel" id="authPhone" required placeholder="017XXXXXXXX" />
+            <input type="tel" id="authPhone" placeholder="017XXXXXXXX" />
           </div>
 
           <div class="status-msg" id="authStatus"></div>
@@ -939,7 +891,7 @@
           </div>
 
           <div class="form-group">
-            <label style="color:#ef4444; font-weight:bold;">Admin Password</label>
+            <label style="color:var(--danger); font-weight:bold;">Admin Password</label>
             <input type="password" id="noticeAdminPassword" required placeholder="Enter password" />
           </div>
 
@@ -966,17 +918,43 @@
       </div>
     </div>
 
+    <!-- Image Lightbox Modal -->
+    <div class="lightbox-overlay hidden" id="lightboxModal">
+      <button class="lightbox-close" id="lightboxClose">&times;</button>
+      <img src="" id="lightboxImg" class="lightbox-img" alt="Zoomed View" />
+    </div>
+
   </div>
 
   <script>
     // =========================================================================
-    // Configurations & Online API Keys Setup
+    // Dynamic Manifest Generation for Direct Mobile PWA Installation
+    // =========================================================================
+    const manifestData = {
+      "name": "BOU Lounge 2026",
+      "short_name": "BOU Lounge",
+      "start_url": "./",
+      "display": "standalone",
+      "background_color": "#ffffff",
+      "theme_color": "#0f172a",
+      "icons": [{
+        "src": "https://via.placeholder.com/192/0f172a/ffffff?text=BOU",
+        "sizes": "192x192",
+        "type": "image/png"
+      }]
+    };
+    const stringManifest = JSON.stringify(manifestData);
+    const blobManifest = new Blob([stringManifest], {type: 'application/json'});
+    const manifestURL = URL.createObjectURL(blobManifest);
+    document.getElementById('manifestPlaceholder').setAttribute('href', manifestURL);
+
+    // =========================================================================
+    // Global Configurations & Online API
     // =========================================================================
     const JSONBIN_BIN_ID = "YOUR_BIN_ID_HERE"; 
-    const JSONBIN_ACCESS_KEY = "YOUR_ACCESS_KEY_HERE"; // Uses X-Access-Key safely
+    const JSONBIN_ACCESS_KEY = "YOUR_ACCESS_KEY_HERE"; 
     const JSONBIN_URL = `https://api.jsonbin.io/v3/b/${JSONBIN_BIN_ID}`;
-    const ADMIN_PASSWORD_DEFAULT = "admin123"; 
-    const MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024;
+    const ADMIN_PASSWORD_DEFAULT = "admin123";
 
     let authMode = 'login';
     let currentUser = null;
@@ -984,7 +962,6 @@
     let tempAvatarBase64 = null;
     let tempNoticeImgBase64 = null;
 
-    // Purely in-memory cache (RAM only, NOT saved to LocalStorage)
     let localStoreData = {
       users: [],
       messages: [],
@@ -992,16 +969,42 @@
     };
 
     // =========================================================================
-    // Lifecycle Init
+    // Theme Engine Setup (Light & Dark Mode)
+    // =========================================================================
+    const themeSilverBtn = document.getElementById('themeSilverBtn');
+    const themeDarkBtn = document.getElementById('themeDarkBtn');
+
+    function setTheme(theme) {
+      document.documentElement.setAttribute('data-theme', theme);
+      localStorage.setItem('bou_app_theme', theme);
+
+      if (theme === 'dark') {
+        themeDarkBtn.classList.add('active');
+        themeSilverBtn.classList.remove('active');
+        document.getElementById('themeColorMeta').setAttribute('content', '#0b0f19');
+      } else {
+        themeSilverBtn.classList.add('active');
+        themeDarkBtn.classList.remove('active');
+        document.getElementById('themeColorMeta').setAttribute('content', '#ffffff');
+      }
+    }
+
+    themeSilverBtn.addEventListener('click', () => setTheme('light'));
+    themeDarkBtn.addEventListener('click', () => setTheme('dark'));
+
+    // Init Theme on Load
+    const savedTheme = localStorage.getItem('bou_app_theme') || 'light';
+    setTheme(savedTheme);
+
+    // =========================================================================
+    // App Initialization
     // =========================================================================
     window.addEventListener('DOMContentLoaded', async () => {
-      // ONLY load current logged-in user profile (Name, Phone, Avatar) from LocalStorage
       const savedUser = localStorage.getItem('bou_chat_user');
       if (savedUser) {
         try { currentUser = JSON.parse(savedUser); } catch(e) {}
       }
 
-      // Default Guest User Profile if not logged in
       if (!currentUser) {
         currentUser = {
           id: 'usr_guest_' + Math.floor(1000 + Math.random() * 9000),
@@ -1013,35 +1016,37 @@
       }
 
       updateUserUI();
-
-      // Fetch live Messages, Notices & User List strictly from Online API
       await syncWithJSONBin();
-      
-      // Auto-refresh chat & notices every 3 seconds from online
       setInterval(syncWithJSONBin, 3000);
     });
 
     // =========================================================================
-    // Direct HTML App File Download Logic
+    // Direct Mobile App Installation (PWA Prompt)
     // =========================================================================
-    const downloadAppBtn = document.getElementById('downloadAppBtn');
-    if (downloadAppBtn) {
-      downloadAppBtn.addEventListener('click', () => {
-        const fullHTML = "<!DOCTYPE html>\n" + document.documentElement.outerHTML;
-        const blob = new Blob([fullHTML], { type: 'text/html;charset=utf-8' });
-        const downloadUrl = URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.href = downloadUrl;
-        link.download = 'index.html';
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        URL.revokeObjectURL(downloadUrl);
-      });
-    }
+    let deferredPrompt;
+    const installAppBtn = document.getElementById('installAppBtn');
+
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      deferredPrompt = e;
+      installAppBtn.style.display = 'flex';
+    });
+
+    installAppBtn.addEventListener('click', async () => {
+      if (deferredPrompt) {
+        deferredPrompt.prompt();
+        const { outcome } = await deferredPrompt.userChoice;
+        if (outcome === 'accepted') {
+          installAppBtn.style.display = 'none';
+        }
+        deferredPrompt = null;
+      } else {
+        alert("মোবাইলে অ্যাপ ইনস্টল করতে ব্রাউজার মেনু (3-dots) থেকে 'Add to Home Screen' বা 'Install App' বাটনে চাপ দিন।");
+      }
+    });
 
     // =========================================================================
-    // Navigation Tabs Switching (Public Chat vs Notice Board)
+    // Navigation Tabs Switching (Unrestricted Access for Guests)
     // =========================================================================
     const tabPublicChat = document.getElementById('tabPublicChat');
     const tabNoticeBoard = document.getElementById('tabNoticeBoard');
@@ -1061,10 +1066,11 @@
       tabPublicChat.classList.remove('active');
       noticeSection.classList.remove('hidden');
       chatSection.classList.add('hidden');
+      renderAllNotices();
     });
 
     // =========================================================================
-    // Auth & Guest UI Management
+    // Auth & Profile Modal Management
     // =========================================================================
     const tabLogin = document.getElementById('tabLogin');
     const tabRegister = document.getElementById('tabRegister');
@@ -1075,8 +1081,8 @@
     const logoutBtn = document.getElementById('logoutBtn');
     const authStatus = document.getElementById('authStatus');
 
-    tabLogin.addEventListener('click', () => { if (authMode !== 'profile') setAuthMode('login'); });
-    tabRegister.addEventListener('click', () => { if (authMode !== 'profile') setAuthMode('register'); });
+    tabLogin.addEventListener('click', () => setAuthMode('login'));
+    tabRegister.addEventListener('click', () => setAuthMode('register'));
 
     function setAuthMode(mode) {
       authMode = mode;
@@ -1090,9 +1096,7 @@
         avatarSection.style.display = 'none';
         modalTitle.textContent = 'Sign In to Account';
         authSubmitBtn.textContent = 'Sign In';
-        authSubmitBtn.classList.remove('hidden');
         logoutBtn.classList.add('hidden');
-        document.getElementById('authName').required = false;
       } else if (mode === 'register') {
         tabRegister.classList.add('active');
         tabLogin.classList.remove('active');
@@ -1100,30 +1104,26 @@
         avatarSection.style.display = 'flex';
         modalTitle.textContent = 'Create New Account';
         authSubmitBtn.textContent = 'Register';
-        authSubmitBtn.classList.remove('hidden');
         logoutBtn.classList.add('hidden');
-        document.getElementById('authName').required = true;
       } else if (mode === 'profile') {
-        document.getElementById('authTabs').style.display = 'none';
+        document.getElementById('authTabs').style.display = 'flex';
         nameGroup.style.display = 'block';
         avatarSection.style.display = 'flex';
-        modalTitle.textContent = 'Profile & Avatar';
+        modalTitle.textContent = 'User Profile & Settings';
         authSubmitBtn.textContent = 'Save Changes';
-        authSubmitBtn.classList.remove('hidden');
         logoutBtn.classList.remove('hidden');
       }
     }
 
     document.getElementById('profileBtn').addEventListener('click', () => {
+      document.getElementById('authTabs').style.display = 'flex';
       if (currentUser && !currentUser.isGuest) {
         document.getElementById('authName').value = currentUser.name || '';
         document.getElementById('authPhone').value = currentUser.phone || '';
         document.getElementById('avatarPreview').src = currentUser.avatar || 'https://via.placeholder.com/100?text=User';
         tempAvatarBase64 = currentUser.avatar || null;
-        document.getElementById('authTabs').style.display = 'none';
         setAuthMode('profile');
       } else {
-        document.getElementById('authTabs').style.display = 'flex';
         setAuthMode('login');
       }
       showAuthModal();
@@ -1140,14 +1140,11 @@
     document.getElementById('authAvatarInput').addEventListener('change', async function() {
       const file = this.files[0];
       if (!file) return;
-      showLoading(true, "Processing image...");
       try {
         tempAvatarBase64 = await compressImage(file, 150, 0.7);
         document.getElementById('avatarPreview').src = tempAvatarBase64;
       } catch (e) {
         alert("Failed to load image.");
-      } finally {
-        showLoading(false);
       }
     });
 
@@ -1162,12 +1159,6 @@
       }
 
       if (authMode === 'register') {
-        const existing = localStoreData.users.find(u => u.phone === phone);
-        if (existing) {
-          showStatus('Account already exists! Go to Sign In.', 'error');
-          return;
-        }
-
         const newUser = {
           id: 'usr_' + Date.now(),
           name: name || 'User',
@@ -1187,9 +1178,9 @@
         if (!found) {
           found = {
             id: 'usr_' + Date.now(),
-            name: 'User ' + phone.slice(-4),
+            name: name || ('User ' + phone.slice(-4)),
             phone: phone,
-            avatar: null,
+            avatar: tempAvatarBase64 || null,
             isGuest: false
           };
           localStoreData.users.push(found);
@@ -1228,21 +1219,13 @@
       };
       localStorage.removeItem('bou_chat_user');
       updateUserUI();
-      document.getElementById('authTabs').style.display = 'flex';
       setAuthMode('login');
       showStatus('Logged out successfully.', 'info');
     });
 
     function saveUserData() {
-      // ONLY profile details (Name, Phone, Profile Pic) are saved in LocalStorage
       if (currentUser && !currentUser.isGuest) {
-        localStorage.setItem('bou_chat_user', JSON.stringify({
-          id: currentUser.id,
-          name: currentUser.name,
-          phone: currentUser.phone,
-          avatar: currentUser.avatar,
-          isGuest: false
-        }));
+        localStorage.setItem('bou_chat_user', JSON.stringify(currentUser));
       }
       saveToJSONBin();
     }
@@ -1254,17 +1237,14 @@
 
     function updateUserUI() {
       const btn = document.getElementById('profileBtn');
-      const chatInputBar = document.getElementById('chatInputBar');
       const guestNoticeBar = document.getElementById('guestNoticeBar');
-
-      chatInputBar.classList.remove('hidden');
 
       if (!currentUser || currentUser.isGuest) {
         btn.innerHTML = 'GST';
         guestNoticeBar.classList.remove('hidden');
       } else {
         if (currentUser.avatar) {
-          btn.innerHTML = `<img src="${currentUser.avatar}" alt="Avatar" />`;
+          btn.innerHTML = `<img src="${currentUser.avatar}" alt="Avatar" style="width:100%;height:100%;object-fit:cover;" />`;
         } else {
           const initials = currentUser.name ? currentUser.name.substring(0, 2).toUpperCase() : 'US';
           btn.innerHTML = initials;
@@ -1277,7 +1257,7 @@
     function hideAuthModal() { document.getElementById('authModal').classList.add('hidden'); }
 
     // =========================================================================
-    // Notice Board Logic (Admin Upload & Admin Delete)
+    // Notice Board Operations
     // =========================================================================
     const adminNoticeModal = document.getElementById('adminNoticeModal');
     const openAddNoticeBtn = document.getElementById('openAddNoticeBtn');
@@ -1299,13 +1279,10 @@
     document.getElementById('noticeImageInput').addEventListener('change', async function() {
       const file = this.files[0];
       if (!file) return;
-      showLoading(true, "Processing notice image...");
       try {
         tempNoticeImgBase64 = await compressImage(file, 500, 0.5);
       } catch (e) {
-        alert("Failed to process image.");
-      } finally {
-        showLoading(false);
+        alert("Failed to process notice image.");
       }
     });
 
@@ -1322,15 +1299,9 @@
         return;
       }
 
-      if (!title && !content && !tempNoticeImgBase64) {
-        statusEl.textContent = 'Please provide title, content, or an image!';
-        statusEl.className = 'status-msg error';
-        return;
-      }
-
       if (!title) {
         const now = new Date();
-        title = 'Notice - ' + now.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+        title = 'Notice - ' + now.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
       }
 
       const newNotice = {
@@ -1368,7 +1339,6 @@
       card.className = 'notice-card';
 
       const timeStr = notice.created_at ? new Date(notice.created_at).toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'short' }) : '';
-      
       let imgHtml = notice.image_url ? `<img src="${notice.image_url}" class="notice-img" onclick="openLightbox('${notice.image_url}')" />` : '';
 
       card.innerHTML = `
@@ -1393,95 +1363,17 @@
       document.getElementById('adminDeleteModal').classList.remove('hidden');
     }
 
-    // =========================================================================
-    // Lightbox System with Pinch Zoom & Dragging
-    // =========================================================================
-    const lightboxModal = document.getElementById('lightboxModal');
-    const lightboxImg = document.getElementById('lightboxImg');
-    const lightboxClose = document.getElementById('lightboxClose');
-
-    let currentScale = 1;
-    let translateX = 0, translateY = 0;
-    let isDragging = false, startX = 0, startY = 0;
-    let initialPinchDistance = null;
-
+    // Lightbox Box Controls
     function openLightbox(src) {
-      lightboxImg.src = src;
-      resetZoom();
-      lightboxModal.classList.remove('hidden');
+      document.getElementById('lightboxImg').src = src;
+      document.getElementById('lightboxModal').classList.remove('hidden');
     }
-
-    function resetZoom() {
-      currentScale = 1; translateX = 0; translateY = 0;
-      applyTransform();
-    }
-
-    function applyTransform() {
-      lightboxImg.style.transform = `translate(${translateX}px, ${translateY}px) scale(${currentScale})`;
-    }
-
-    lightboxClose.addEventListener('click', () => lightboxModal.classList.add('hidden'));
-
-    document.getElementById('zoomInBtn').addEventListener('click', () => {
-      currentScale = Math.min(currentScale + 0.4, 5);
-      applyTransform();
-    });
-
-    document.getElementById('zoomOutBtn').addEventListener('click', () => {
-      currentScale = Math.max(currentScale - 0.4, 1);
-      if (currentScale === 1) { translateX = 0; translateY = 0; }
-      applyTransform();
-    });
-
-    document.getElementById('zoomResetBtn').addEventListener('click', resetZoom);
-
-    lightboxModal.addEventListener('wheel', (e) => {
-      e.preventDefault();
-      if (e.deltaY < 0) currentScale = Math.min(currentScale + 0.25, 5);
-      else currentScale = Math.max(currentScale - 0.25, 1);
-      if (currentScale === 1) { translateX = 0; translateY = 0; }
-      applyTransform();
-    }, { passive: false });
-
-    lightboxImg.addEventListener('touchstart', (e) => {
-      if (e.touches.length === 2) {
-        initialPinchDistance = Math.hypot(
-          e.touches[0].clientX - e.touches[1].clientX,
-          e.touches[0].clientY - e.touches[1].clientY
-        );
-      } else if (e.touches.length === 1 && currentScale > 1) {
-        isDragging = true;
-        startX = e.touches[0].clientX - translateX;
-        startY = e.touches[0].clientY - translateY;
-      }
-    });
-
-    lightboxImg.addEventListener('touchmove', (e) => {
-      if (e.touches.length === 2 && initialPinchDistance) {
-        e.preventDefault();
-        const currentDist = Math.hypot(
-          e.touches[0].clientX - e.touches[1].clientX,
-          e.touches[0].clientY - e.touches[1].clientY
-        );
-        const factor = currentDist / initialPinchDistance;
-        currentScale = Math.min(Math.max(currentScale * factor, 1), 5);
-        initialPinchDistance = currentDist;
-        applyTransform();
-      } else if (e.touches.length === 1 && isDragging) {
-        e.preventDefault();
-        translateX = e.touches[0].clientX - startX;
-        translateY = e.touches[0].clientY - startY;
-        applyTransform();
-      }
-    }, { passive: false });
-
-    lightboxImg.addEventListener('touchend', (e) => {
-      if (e.touches.length < 2) initialPinchDistance = null;
-      if (e.touches.length === 0) isDragging = false;
+    document.getElementById('lightboxClose').addEventListener('click', () => {
+      document.getElementById('lightboxModal').classList.add('hidden');
     });
 
     // =========================================================================
-    // Emoji Picker & Input Controls
+    // Emoji Picker Panel Logic
     // =========================================================================
     const emojiToggleBtn = document.getElementById('emojiToggleBtn');
     const emojiPicker = document.getElementById('emojiPicker');
@@ -1498,7 +1390,7 @@
     });
 
     // =========================================================================
-    // Pure Online JSONBin Sync Logic (Using X-Access-Key)
+    // JSONBin Online Syncing
     // =========================================================================
     async function syncWithJSONBin() {
       if (!JSONBIN_BIN_ID || JSONBIN_BIN_ID === "YOUR_BIN_ID_HERE") return;
@@ -1512,25 +1404,19 @@
           const json = await res.json();
           if (json.record) {
             if (json.record.messages) {
-              if (JSON.stringify(localStoreData.messages) !== JSON.stringify(json.record.messages)) {
-                localStoreData.messages = json.record.messages;
-                renderAllMessages();
-              }
+              localStoreData.messages = json.record.messages;
+              renderAllMessages();
             }
-
             if (json.record.notices) {
-              if (JSON.stringify(localStoreData.notices) !== JSON.stringify(json.record.notices)) {
-                localStoreData.notices = json.record.notices;
-                renderAllNotices();
-              }
+              localStoreData.notices = json.record.notices;
+              if (!noticeSection.classList.contains('hidden')) renderAllNotices();
             }
-
             if (json.record.users) {
               localStoreData.users = json.record.users;
             }
           }
         }
-      } catch (e) { console.warn('Online sync warning:', e); }
+      } catch (e) { console.warn('Sync warning:', e); }
     }
 
     async function saveToJSONBin() {
@@ -1544,11 +1430,10 @@
           },
           body: JSON.stringify(localStoreData)
         });
-      } catch (e) { console.error('Online save failed:', e); }
+      } catch (e) { console.error('Save failed:', e); }
     }
 
-    // Fast Base64 Image Compression
-    function compressImage(file, maxWidth = 500, quality = 0.45) {
+    function compressImage(file, maxWidth = 500, quality = 0.5) {
       return new Promise((resolve, reject) => {
         const reader = new FileReader();
         reader.readAsDataURL(file);
@@ -1569,24 +1454,14 @@
             canvas.height = height;
             const ctx = canvas.getContext('2d');
             ctx.drawImage(img, 0, 0, width, height);
-
             resolve(canvas.toDataURL('image/jpeg', quality));
           };
-          img.onerror = (err) => reject(err);
         };
-        reader.onerror = (err) => reject(err);
       });
     }
 
-    function showLoading(show, text = "Loading...") {
-      const el = document.getElementById('loadingOverlay');
-      document.getElementById('loadingText').textContent = text;
-      if (show) el.classList.remove('hidden');
-      else el.classList.add('hidden');
-    }
-
     // =========================================================================
-    // Admin Delete Modal & Actions
+    // Admin Delete Confirm System
     // =========================================================================
     document.getElementById('closeDeleteModalBtn').addEventListener('click', () => {
       document.getElementById('adminDeleteModal').classList.add('hidden');
@@ -1617,29 +1492,8 @@
       }
     });
 
-    function attachLongPressListener(element, msgId) {
-      let timer = null;
-      const start = () => {
-        timer = setTimeout(() => {
-          pendingDeleteTarget = { type: 'chat', id: msgId };
-          document.getElementById('deleteModalTitle').textContent = 'Delete Message (Admin)';
-          document.getElementById('adminPasswordInput').value = '';
-          document.getElementById('adminStatus').textContent = '';
-          document.getElementById('adminDeleteModal').classList.remove('hidden');
-        }, 600);
-      };
-      const stop = () => { if (timer) clearTimeout(timer); };
-
-      element.addEventListener('touchstart', start);
-      element.addEventListener('touchend', stop);
-      element.addEventListener('touchmove', stop);
-      element.addEventListener('mousedown', start);
-      element.addEventListener('mouseup', stop);
-      element.addEventListener('mouseleave', stop);
-    }
-
     // =========================================================================
-    // Chat Message Rendering & Actions
+    // Chat Area & Message Sending Logic
     // =========================================================================
     function renderAllMessages() {
       const messageArea = document.getElementById('messageArea');
@@ -1694,7 +1548,6 @@
         </div>
       `;
 
-      attachLongPressListener(row, msg.id);
       messageArea.appendChild(row);
     }
 
@@ -1706,21 +1559,12 @@
       const file = this.files[0];
       if (!file) return;
 
-      if (file.size > MAX_FILE_SIZE_BYTES) {
-        alert("File size exceeds 10 MB Limit.");
-        this.value = '';
-        return;
-      }
-
-      showLoading(true, "Compressing & Uploading image...");
-
       try {
         const compressedBase64 = await compressImage(file, 500, 0.45);
         await sendNewMessage('', compressedBase64);
       } catch (err) {
         alert("Failed to send image.");
       } finally {
-        showLoading(false);
         this.value = '';
       }
     });
@@ -1773,38 +1617,10 @@
       return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
     }
 
-    // =========================================================================
-    // PWA & Install App Logic
-    // =========================================================================
-    let deferredPrompt;
-    const installAppBtn = document.getElementById('installAppBtn');
-
-    window.addEventListener('beforeinstallprompt', (e) => {
-      e.preventDefault();
-      deferredPrompt = e;
-      installAppBtn.classList.remove('hidden');
-    });
-
-    installAppBtn.addEventListener('click', async () => {
-      if (deferredPrompt) {
-        deferredPrompt.prompt();
-        const { outcome } = await deferredPrompt.userChoice;
-        if (outcome === 'accepted') {
-          console.log('User accepted prompt');
-        }
-        deferredPrompt = null;
-        installAppBtn.classList.add('hidden');
-      }
-    });
-
-    // Register Service Worker
+    // Register Service Worker for PWA
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
-        navigator.serviceWorker.register('./sw.js').then((reg) => {
-          console.log('ServiceWorker registered with scope: ', reg.scope);
-        }).catch((err) => {
-          console.log('ServiceWorker registration failed: ', err);
-        });
+        navigator.serviceWorker.register('./sw.js').catch(() => {});
       });
     }
   </script>
