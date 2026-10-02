@@ -911,6 +911,12 @@
       background: var(--msg-out);
       border: none; color: white; font-weight: 700; border-radius: 10px; cursor: pointer; margin-top: 8px; font-size: 14px;
     }
+    
+    .btn-primary:disabled {
+      background: var(--border-color);
+      cursor: not-allowed;
+      opacity: 0.6;
+    }
 
     .btn-danger {
       width: 100%; height: 38px; background: rgba(239, 68, 68, 0.1); border: 1px solid var(--danger);
@@ -1015,7 +1021,7 @@
     <!-- PUBLIC CHAT SECTION -->
     <section class="content-section" id="chatSection">
       <!-- Pull To Refresh Indicator -->
-      <div class="ptr-indicator" id="chatPtrIndicator">⬇️ টেনে আনুন রিলোড করতে...</div>
+      <div class="ptr-indicator" id="chatPtrIndicator">⬇️️ টেনে আনুন রিলোড করতে...</div>
 
       <!-- Scrollable Message Area -->
       <main class="message-area" id="messageArea">
@@ -1107,7 +1113,7 @@
           
           <div class="avatar-upload-wrapper">
             <img src="https://via.placeholder.com/100?text=Photo" class="avatar-preview" id="editTeacherImgPreview" />
-            <label for="editTeacherImgInput" class="btn-upload-pic" id="editTeacherImgLabel">📷 স্যারের ছবি আপলোড করুন</label>
+            <label for="editTeacherImgInput" class="btn-upload-pic" id="editTeacherImgLabel">📷 স্যারের ছবি আপলোড করুন (Cloudinary)</label>
             <input type="file" id="editTeacherImgInput" accept="image/*" class="hidden" />
           </div>
 
@@ -1261,12 +1267,12 @@
     // BOU 6 Subject Teachers Dataset & Modal Logic
     // =========================================================================
     const defaultTeachersData = [
-      { id: "tech_1", subject: "বাংলা টিচার", name: "মঞ্জু স্যার", phone: "01711000000", icon: "📚", image: "" },
-      { id: "tech_2", subject: "ইংরেজি টিচার", name: "নীরজ আলী উসমান", phone: "01722000000", icon: "🔤", image: "" },
-      { id: "tech_3", subject: "আইসিটি টিচার", name: "মিরাজ মিজানুর রহমান খান", phone: "01733000000", icon: "💻", image: "" },
-      { id: "tech_4", subject: "হিসাববিজ্ঞানের টিচার", name: "সাগর স্যার", phone: "01744000000", icon: "📊", image: "" },
-      { id: "tech_5", subject: "ব্যবসায় সংগঠনের টিচার", name: "পলাশ স্যার", phone: "01755000000", icon: "🏢", image: "" },
-      { id: "tech_6", subject: "ফ্রিল্যান্স ও ব্যবসার টিচার", name: "জামান স্যার", phone: "01766000000", icon: "🚀", image: "" }
+      { id: "tech_1", subject: "বাংলা টিচার", name: "মঞ্জু স্যার", phone: "01711000000", icon: "📚", image: "", updated_at: null },
+      { id: "tech_2", subject: "ইংরেজি টিচার", name: "নীরজ আলী উসমান", phone: "01722000000", icon: "🔤", image: "", updated_at: null },
+      { id: "tech_3", subject: "আইসিটি টিচার", name: "মিরাজ মিজানুর রহমান খান", phone: "01733000000", icon: "💻", image: "", updated_at: null },
+      { id: "tech_4", subject: "হিসাববিজ্ঞানের টিচার", name: "সাগর স্যার", phone: "01744000000", icon: "📊", image: "", updated_at: null },
+      { id: "tech_5", subject: "ব্যবসায় সংগঠনের টিচার", name: "পলাশ স্যার", phone: "01755000000", icon: "🏢", image: "", updated_at: null },
+      { id: "tech_6", subject: "ফ্রিল্যান্স ও ব্যবসার টিচার", name: "জামান স্যার", phone: "01766000000", icon: "🚀", image: "", updated_at: null }
     ];
 
     const teacherModal = document.getElementById('teacherModal');
@@ -1293,7 +1299,7 @@
         card.className = 'teacher-card';
 
         let avatarContent = '';
-        if (t.image) {
+        if (t.image && t.image.trim() !== '') {
           avatarContent = `<img src="${escapeHtml(t.image)}" class="teacher-avatar-img" onclick="openLightbox('${escapeHtml(t.image)}')" alt="${escapeHtml(t.name)}" />`;
         } else {
           avatarContent = t.icon || '👨‍🏫';
@@ -1331,10 +1337,11 @@
       document.getElementById('editTeacherPhone').value = teacher.phone || '';
       document.getElementById('editTeacherAdminPassword').value = '';
       document.getElementById('editTeacherStatus').textContent = '';
+      document.getElementById('saveTeacherBtn').disabled = false;
       
       currentEditingTeacherImg = teacher.image || null;
       document.getElementById('editTeacherImgPreview').src = currentEditingTeacherImg || 'https://via.placeholder.com/100?text=Teacher';
-      document.getElementById('editTeacherImgLabel').textContent = '📷 স্যারের ছবি আপলোড করুন';
+      document.getElementById('editTeacherImgLabel').textContent = '📷 স্যারের ছবি আপলোড করুন (Cloudinary)';
       
       document.getElementById('editTeacherModal').classList.remove('hidden');
     }
@@ -1348,9 +1355,12 @@
       if (!file) return;
       const label = document.getElementById('editTeacherImgLabel');
       const statusEl = document.getElementById('editTeacherStatus');
+      const saveBtn = document.getElementById('saveTeacherBtn');
+      
       try {
-        label.textContent = "ছবি আপলোড হচ্ছে...";
-        statusEl.textContent = "ছবি আপলোড হচ্ছে, অপেক্ষা করুন...";
+        saveBtn.disabled = true;
+        label.textContent = "ছবি ক্লাউডিনারিতে আপলোড হচ্ছে...";
+        statusEl.textContent = "ছবি ক্লাউডিনারিতে আপলোড হচ্ছে, অপেক্ষা করুন...";
         statusEl.className = "status-msg info";
         
         const imgUrl = await uploadToCloudinary(file);
@@ -1358,7 +1368,7 @@
           currentEditingTeacherImg = imgUrl;
           document.getElementById('editTeacherImgPreview').src = imgUrl;
           label.textContent = "আপলোড সফল!";
-          statusEl.textContent = "ছবি সফলভাবে আপলোড হয়েছে!";
+          statusEl.textContent = "ছবি সফলভাবে ক্লাউডিনারিতে আপলোড হয়েছে!";
           statusEl.className = "status-msg info";
         } else {
           label.textContent = "ছবি পরিবর্তন করুন";
@@ -1369,6 +1379,8 @@
         label.textContent = "আপলোড ব্যর্থ";
         statusEl.textContent = "ছবি আপলোডে সমস্যা হয়েছে।";
         statusEl.className = "status-msg error";
+      } finally {
+        saveBtn.disabled = false;
       }
     });
 
@@ -1391,12 +1403,15 @@
         localStoreData.teachers = JSON.parse(JSON.stringify(defaultTeachersData));
       }
 
+      const nowIso = new Date().toISOString();
+
       const idx = localStoreData.teachers.findIndex(t => t.id === id);
       if (idx !== -1) {
         localStoreData.teachers[idx].name = name;
         localStoreData.teachers[idx].subject = subject;
         localStoreData.teachers[idx].phone = phone;
         localStoreData.teachers[idx].image = currentEditingTeacherImg || '';
+        localStoreData.teachers[idx].updated_at = nowIso;
       } else {
         localStoreData.teachers.push({
           id: id,
@@ -1404,14 +1419,15 @@
           subject: subject,
           phone: phone,
           image: currentEditingTeacherImg || '',
-          icon: '👨‍🏫'
+          icon: '👨‍🏫',
+          updated_at: nowIso
         });
       }
 
       // Save locally to LocalStorage
       localStorage.setItem('bou_teachers_data', JSON.stringify(localStoreData.teachers));
 
-      statusEl.textContent = 'স্যারের তথ্য সফলভাবে সংরক্ষিত হয়েছে!';
+      statusEl.textContent = 'স্যারের তথ্য ক্লাউডে সফলভাবে সংরক্ষিত হয়েছে!';
       statusEl.className = 'status-msg info';
 
       renderTeacherList();
@@ -1531,17 +1547,57 @@
       return Array.from(map.values());
     }
 
-    // Helper: Merge Teachers where Local edits take priority over remote stale data
+    // Smart Merge Teachers: Ensures Cloudinary images & updated phones persist without reset
     function mergeTeacherArrays(localArr, remoteArr) {
       if (!Array.isArray(remoteArr) || remoteArr.length === 0) return localArr || defaultTeachersData;
       if (!Array.isArray(localArr) || localArr.length === 0) return remoteArr;
 
-      const map = new Map();
-      // First populate remote items
-      remoteArr.forEach(item => { if (item && item.id) map.set(item.id, item); });
-      // Override with local items so user edits persist
-      localArr.forEach(item => { if (item && item.id) map.set(item.id, item); });
-      return Array.from(map.values());
+      const allTeachersMap = new Map();
+
+      const getTeacherScore = (t) => {
+        if (!t) return 0;
+        if (t.updated_at) return new Date(t.updated_at).getTime() || 0;
+        if (t.image && t.image.trim() !== '') return 1;
+        return 0;
+      };
+
+      // Populate with remote items first
+      remoteArr.forEach(item => {
+        if (item && item.id) allTeachersMap.set(item.id, item);
+      });
+
+      // Compare and merge with local items smartly
+      localArr.forEach(localItem => {
+        if (localItem && localItem.id) {
+          const remoteItem = allTeachersMap.get(localItem.id);
+          if (!remoteItem) {
+            allTeachersMap.set(localItem.id, localItem);
+          } else {
+            const localScore = getTeacherScore(localItem);
+            const remoteScore = getTeacherScore(remoteItem);
+
+            if (localScore > remoteScore) {
+              allTeachersMap.set(localItem.id, localItem);
+            } else if (remoteScore > localScore) {
+              allTeachersMap.set(localItem.id, remoteItem);
+            } else {
+              // Priority given to non-empty custom images and latest fields
+              const merged = {
+                ...remoteItem,
+                ...localItem,
+                name: localItem.name || remoteItem.name,
+                subject: localItem.subject || remoteItem.subject,
+                phone: localItem.phone || remoteItem.phone,
+                image: (localItem.image && localItem.image.trim() !== '') ? localItem.image : (remoteItem.image || ''),
+                updated_at: localItem.updated_at || remoteItem.updated_at || null
+              };
+              allTeachersMap.set(localItem.id, merged);
+            }
+          }
+        }
+      });
+
+      return Array.from(allTeachersMap.values());
     }
 
     // =========================================================================
@@ -1642,7 +1698,7 @@
       if (!file) return null;
 
       if (file.size > MAX_FILE_SIZE_BYTES) {
-        alert("ফাইল ১০০০ এমবি (10 MB) এর বেশি হতে পারবে না!");
+        alert("ফাইল ১০ এমবি (10 MB) এর বেশি হতে পারবে না!");
         return null;
       }
 
