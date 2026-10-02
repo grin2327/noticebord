@@ -317,6 +317,11 @@
       color: var(--text-primary);
       border: 1px solid var(--border-color);
       overflow: hidden;
+      cursor: pointer;
+      transition: transform 0.15s ease;
+    }
+    .msg-avatar:hover {
+      transform: scale(1.08);
     }
 
     .msg-content-wrapper {
@@ -359,6 +364,10 @@
       font-size: 11px;
       font-weight: 600;
       color: var(--text-secondary);
+      cursor: pointer;
+    }
+    .msg-sender:hover {
+      text-decoration: underline;
     }
 
     .msg-del-btn {
@@ -645,6 +654,22 @@
       font-size: 11px;
       cursor: pointer;
       font-weight: bold;
+    }
+
+    .btn-notice-edit {
+      background: var(--badge-bg);
+      color: var(--text-primary);
+      border: 1px solid var(--border-color);
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-size: 11px;
+      cursor: pointer;
+      font-weight: bold;
+      transition: all 0.2s ease;
+    }
+    .btn-notice-edit:hover {
+      background: var(--msg-out);
+      color: #ffffff;
     }
 
     /* Theme Switcher Toggle Control */
@@ -1021,7 +1046,7 @@
     <!-- PUBLIC CHAT SECTION -->
     <section class="content-section" id="chatSection">
       <!-- Pull To Refresh Indicator -->
-      <div class="ptr-indicator" id="chatPtrIndicator">⬇️️ টেনে আনুন রিলোড করতে...</div>
+      <div class="ptr-indicator" id="chatPtrIndicator">⬇ টেনে আনুন রিলোড করতে...</div>
 
       <!-- Scrollable Message Area -->
       <main class="message-area" id="messageArea">
@@ -1221,6 +1246,47 @@
       </div>
     </div>
 
+    <!-- Admin Edit Notice Modal -->
+    <div class="modal-overlay hidden" id="adminEditNoticeModal">
+      <div class="modal-card">
+        <button class="modal-close-btn" id="closeEditNoticeModalBtn" type="button">&times;</button>
+        <h3>✏️ Edit Notice (Admin)</h3>
+        <form id="adminEditNoticeForm">
+          <input type="hidden" id="editNoticeId" />
+          <div class="form-group">
+            <label>Notice Title</label>
+            <input type="text" id="editNoticeTitleInput" placeholder="Title..." />
+          </div>
+
+          <div class="form-group">
+            <label>Notice Details</label>
+            <textarea id="editNoticeContentInput" rows="4" placeholder="Write details here..."></textarea>
+          </div>
+
+          <div class="form-group">
+            <label style="color:var(--danger); font-weight:bold;">Admin Password</label>
+            <input type="password" id="editNoticeAdminPassword" required placeholder="Enter password" />
+          </div>
+
+          <div class="status-msg" id="editNoticeAdminStatus"></div>
+          <button type="submit" class="btn-primary" id="saveNoticeBtn">Save Changes</button>
+        </form>
+      </div>
+    </div>
+
+    <!-- Public User Profile Modal -->
+    <div class="modal-overlay hidden" id="userProfileModal">
+      <div class="modal-card" style="text-align: center;">
+        <button class="modal-close-btn" id="closeUserProfileModalBtn" type="button">&times;</button>
+        <h3 style="margin-bottom:16px;">👤 User Profile</h3>
+        <div style="display: flex; flex-direction: column; align-items: center; gap: 12px; padding: 10px 0;">
+          <div id="userProfileAvatarBox" style="width: 90px; height: 90px; border-radius: 50%; background: var(--input-bg); border: 3px solid var(--border-color); overflow: hidden; display: grid; place-items: center; font-size: 32px; font-weight: bold; color: var(--text-primary); box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+          </div>
+          <div id="userProfileName" style="font-size: 18px; font-weight: 700; color: var(--text-primary);"></div>
+        </div>
+      </div>
+    </div>
+
     <!-- Admin Delete Confirmation Modal -->
     <div class="modal-overlay hidden" id="adminDeleteModal">
       <div class="modal-card">
@@ -1254,6 +1320,12 @@
   </div>
 
   <script>
+    // Helper: Escapes String for Inline JS attribute handling
+    function escapeJsString(str) {
+      if (!str) return '';
+      return str.replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/"/g, '&quot;');
+    }
+
     // Service Worker Registration from actual sw.js file
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
@@ -1300,7 +1372,7 @@
 
         let avatarContent = '';
         if (t.image && t.image.trim() !== '') {
-          avatarContent = `<img src="${escapeHtml(t.image)}" class="teacher-avatar-img" onclick="openLightbox('${escapeHtml(t.image)}')" alt="${escapeHtml(t.name)}" />`;
+          avatarContent = `<img src="${escapeHtml(t.image)}" class="teacher-avatar-img" onclick="openLightbox('${escapeJsString(t.image)}')" alt="${escapeHtml(t.name)}" />`;
         } else {
           avatarContent = t.icon || '👨‍🏫';
         }
@@ -1726,6 +1798,38 @@
     }
 
     // =========================================================================
+    // User Profile View Modal Logic (Name and Image Only - No Phone Number)
+    // =========================================================================
+    function viewUserProfile(userId) {
+      let user = (localStoreData.users || []).find(u => u.id === userId);
+      let name = user ? user.name : 'User';
+      let avatar = user ? user.avatar : null;
+
+      if (!user) {
+        const foundMsg = (localStoreData.messages || []).find(m => m.sender_id === userId);
+        if (foundMsg) {
+          name = foundMsg.sender_name || 'User';
+          avatar = foundMsg.sender_avatar || null;
+        }
+      }
+
+      const avatarBox = document.getElementById('userProfileAvatarBox');
+      if (avatar) {
+        avatarBox.innerHTML = `<img src="${escapeHtml(avatar)}" style="width:100%;height:100%;object-fit:cover;cursor:pointer;" onclick="openLightbox('${escapeJsString(avatar)}')" alt="Profile Photo" />`;
+      } else {
+        const init = name ? name.substring(0, 2).toUpperCase() : 'US';
+        avatarBox.innerHTML = `<span>${escapeHtml(init)}</span>`;
+      }
+
+      document.getElementById('userProfileName').textContent = name;
+      document.getElementById('userProfileModal').classList.remove('hidden');
+    }
+
+    document.getElementById('closeUserProfileModalBtn').addEventListener('click', () => {
+      document.getElementById('userProfileModal').classList.add('hidden');
+    });
+
+    // =========================================================================
     // Auth & Profile Modal Management
     // =========================================================================
     const tabLogin = document.getElementById('tabLogin');
@@ -1851,6 +1955,8 @@
           localStoreData.users.push(found);
         } else {
           found.isGuest = false;
+          if (name) found.name = name;
+          if (tempAvatarBase64) found.avatar = tempAvatarBase64;
         }
 
         currentUser = found;
@@ -1870,7 +1976,7 @@
 
         saveUserData();
         showStatus('Profile updated!', 'info');
-        setTimeout(() => { hideAuthModal(); updateUserUI(); updateMessagesUI(); }, 600);
+        setTimeout(() => { hideAuthModal(); updateUserUI(); }, 600);
       }
     });
 
@@ -1923,7 +2029,7 @@
     function hideAuthModal() { document.getElementById('authModal').classList.add('hidden'); }
 
     // =========================================================================
-    // Notice Board Operations & Custom Sorting
+    // Notice Board Operations, Custom Sorting & Edit Modal Logic
     // =========================================================================
     const adminNoticeModal = document.getElementById('adminNoticeModal');
     const openAddNoticeBtn = document.getElementById('openAddNoticeBtn');
@@ -1944,6 +2050,50 @@
 
     document.getElementById('closeNoticeModalBtn').addEventListener('click', () => {
       adminNoticeModal.classList.add('hidden');
+    });
+
+    // Admin Notice Edit Logic
+    function openEditNoticeModal(noticeId) {
+      const notice = (localStoreData.notices || []).find(n => n.id === noticeId);
+      if (!notice) return;
+
+      document.getElementById('editNoticeId').value = notice.id;
+      document.getElementById('editNoticeTitleInput').value = notice.title || '';
+      document.getElementById('editNoticeContentInput').value = notice.content || '';
+      document.getElementById('editNoticeAdminPassword').value = '';
+      document.getElementById('editNoticeAdminStatus').textContent = '';
+
+      document.getElementById('adminEditNoticeModal').classList.remove('hidden');
+    }
+
+    document.getElementById('closeEditNoticeModalBtn').addEventListener('click', () => {
+      document.getElementById('adminEditNoticeModal').classList.add('hidden');
+    });
+
+    document.getElementById('adminEditNoticeForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const noticeId = document.getElementById('editNoticeId').value;
+      const newTitle = document.getElementById('editNoticeTitleInput').value.trim();
+      const newContent = document.getElementById('editNoticeContentInput').value.trim();
+      const pass = document.getElementById('editNoticeAdminPassword').value.trim();
+      const statusEl = document.getElementById('editNoticeAdminStatus');
+
+      if (pass !== ADMIN_PASSWORD_DEFAULT) {
+        statusEl.textContent = 'Invalid admin password!';
+        statusEl.className = 'status-msg error';
+        return;
+      }
+
+      const notice = localStoreData.notices.find(n => n.id === noticeId);
+      if (notice) {
+        notice.title = newTitle || notice.title;
+        notice.content = newContent;
+
+        renderAllNotices();
+        await saveToJSONBin();
+
+        document.getElementById('adminEditNoticeModal').classList.add('hidden');
+      }
     });
 
     // Upload Notice Image/File and calculate file size
@@ -2013,6 +2163,9 @@
       renderAllNotices();
       await saveToJSONBin();
 
+      tempNoticeImgBase64 = null;
+      tempNoticeFileSize = null;
+
       adminNoticeModal.classList.add('hidden');
       alert("Notice published successfully!");
     });
@@ -2051,8 +2204,8 @@
         const sizeBadge = notice.file_size ? `<div class="file-size-badge">📁 File size: ${escapeHtml(notice.file_size)}</div>` : '';
         imgHtml = `
           <div class="notice-media-wrapper">
-            <div class="notice-img-container" onclick="openLightbox('${notice.image_url}')" title="Click to view full size">
-              <img src="${notice.image_url}" class="notice-img" alt="Notice Attachment" loading="lazy" />
+            <div class="notice-img-container" onclick="openLightbox('${escapeJsString(notice.image_url)}')" title="Click to view full size">
+              <img src="${escapeHtml(notice.image_url)}" class="notice-img" alt="Notice Attachment" loading="lazy" />
             </div>
             ${sizeBadge}
           </div>
@@ -2062,7 +2215,10 @@
       card.innerHTML = `
         <div class="notice-card-header">
           <span class="notice-badge">ADMIN NOTICE</span>
-          <button class="btn-notice-delete" onclick="triggerNoticeDelete('${notice.id}')">🗑️ Delete</button>
+          <div style="display:flex; gap:6px; align-items:center;">
+            <button class="btn-notice-delete" onclick="triggerNoticeDelete('${notice.id}')">🗑️ Delete</button>
+            <button class="btn-notice-edit" onclick="openEditNoticeModal('${notice.id}')">✏️ Edit</button>
+          </div>
         </div>
         <div class="notice-title">${escapeHtml(notice.title)}</div>
         ${notice.content ? `<div class="notice-body">${escapeHtml(notice.content)}</div>` : ''}
@@ -2387,6 +2543,7 @@
           localStoreData.messages = localStoreData.messages.filter(m => m.id !== pendingDeleteTarget.id);
           const elem = document.getElementById(pendingDeleteTarget.id);
           if (elem) elem.remove();
+          updateMessagesUI();
         } else if (pendingDeleteTarget.type === 'notice') {
           localStoreData.notices = localStoreData.notices.filter(n => n.id !== pendingDeleteTarget.id);
           renderAllNotices();
@@ -2424,7 +2581,7 @@
 
       localStoreData.messages.forEach(msg => {
         if (!document.getElementById(msg.id)) {
-          renderMessage(msg);
+          renderMessage(msg, isAtBottom);
         }
       });
 
@@ -2434,7 +2591,7 @@
       }
     }
 
-    function renderMessage(msg) {
+    function renderMessage(msg, shouldScroll = true) {
       const messageArea = document.getElementById('messageArea');
       if (document.getElementById(msg.id)) return;
 
@@ -2448,13 +2605,11 @@
       const avatarSrc = msg.sender_avatar || (senderUser ? senderUser.avatar : null);
       
       let avatarHtml = '';
-      if (!isMine) {
-        if (avatarSrc) {
-          avatarHtml = `<img src="${avatarSrc}" class="msg-avatar" alt="pic" />`;
-        } else {
-          const init = msg.sender_name ? msg.sender_name.substring(0,2).toUpperCase() : 'U';
-          avatarHtml = `<div class="msg-avatar">${init}</div>`;
-        }
+      if (avatarSrc) {
+        avatarHtml = `<img src="${escapeHtml(avatarSrc)}" class="msg-avatar" onclick="viewUserProfile('${msg.sender_id}')" title="View Profile" alt="pic" />`;
+      } else {
+        const init = msg.sender_name ? msg.sender_name.substring(0,2).toUpperCase() : 'U';
+        avatarHtml = `<div class="msg-avatar" onclick="viewUserProfile('${msg.sender_id}')" title="View Profile">${init}</div>`;
       }
 
       const senderName = isMine ? 'You' : escapeHtml(msg.sender_name || 'User');
@@ -2462,13 +2617,16 @@
 
       let contentHtml = '';
       if (msg.message_text) { contentHtml += `<div>${escapeHtml(msg.message_text)}</div>`; }
-      if (msg.image_url) { contentHtml += `<img src="${msg.image_url}" class="msg-img" onclick="openLightbox('${msg.image_url}')" onload="scrollToBottom()" />`; }
+      if (msg.image_url) { 
+        const scrollAttr = shouldScroll ? 'onload="scrollToBottom()"' : '';
+        contentHtml += `<img src="${escapeHtml(msg.image_url)}" class="msg-img" onclick="openLightbox('${escapeJsString(msg.image_url)}')" ${scrollAttr} />`; 
+      }
 
       row.innerHTML = `
         ${avatarHtml}
         <div class="msg-content-wrapper">
           <div class="msg-sender-bar">
-            <span class="msg-sender">${senderName}</span>
+            <span class="msg-sender" onclick="viewUserProfile('${msg.sender_id}')">${senderName}</span>
             <button class="msg-del-btn" onclick="triggerChatDelete('${msg.id}')" title="Delete">🗑️</button>
           </div>
           <div class="msg-bubble">
@@ -2542,7 +2700,7 @@
       };
 
       localStoreData.messages.push(newMsg);
-      renderMessage(newMsg);
+      renderMessage(newMsg, true);
       scrollToBottom();
 
       await saveToJSONBin();
