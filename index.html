@@ -204,6 +204,29 @@
       flex-shrink: 0;
     }
 
+    /* Pull to Refresh Indicator Bar */
+    .ptr-indicator {
+      text-align: center;
+      padding: 6px;
+      font-size: 12px;
+      color: var(--text-secondary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      transition: all 0.2s ease;
+      opacity: 0;
+      height: 0;
+      overflow: hidden;
+      background: var(--badge-bg);
+      border-bottom: 1px solid var(--border-color);
+      font-weight: 600;
+    }
+    .ptr-indicator.visible {
+      opacity: 1;
+      height: 36px;
+    }
+
     /* Navigation Tabs Bar */
     .nav-tabs-bar {
       display: flex;
@@ -257,8 +280,8 @@
       scroll-behavior: smooth;
     }
 
-    .message-area::-webkit-scrollbar, .notice-feed::-webkit-scrollbar { width: 6px; }
-    .message-area::-webkit-scrollbar-thumb, .notice-feed::-webkit-scrollbar-thumb {
+    .message-area::-webkit-scrollbar, .notice-feed::-webkit-scrollbar, .teacher-list-container::-webkit-scrollbar { width: 6px; }
+    .message-area::-webkit-scrollbar-thumb, .notice-feed::-webkit-scrollbar-thumb, .teacher-list-container::-webkit-scrollbar-thumb {
       background: var(--border-color);
       border-radius: 10px;
     }
@@ -562,7 +585,6 @@
       margin-bottom: 10px;
     }
 
-    /* Notice Board Thumbnail Image & File Size Badge Styles */
     .notice-media-wrapper {
       margin-top: 10px;
       display: flex;
@@ -703,7 +725,7 @@
     .modal-card {
       background: var(--panel);
       width: 100%;
-      max-width: 380px;
+      max-width: 420px;
       padding: 24px;
       border-radius: 20px;
       border: 1px solid var(--border-color);
@@ -727,6 +749,103 @@
       margin-bottom: 14px;
       color: var(--text-primary);
       text-align: center;
+    }
+
+    /* Teachers List Popup Styling */
+    .teacher-list-container {
+      max-height: 60vh;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      padding-right: 4px;
+    }
+
+    .teacher-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 14px;
+      padding: 14px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+      position: relative;
+    }
+
+    .teacher-avatar-box {
+      width: 58px;
+      height: 58px;
+      border-radius: 14px;
+      background: var(--input-bg);
+      border: 2px solid var(--border-color);
+      display: grid;
+      place-items: center;
+      font-size: 26px;
+      flex-shrink: 0;
+      overflow: hidden;
+      box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);
+    }
+
+    .teacher-avatar-img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      cursor: pointer;
+    }
+
+    .teacher-info {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+
+    .teacher-name {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--text-primary);
+      line-height: 1.2;
+    }
+
+    .teacher-dept {
+      font-size: 13px;
+      color: var(--accent-blue);
+      font-weight: 600;
+    }
+
+    .teacher-phone {
+      font-size: 12px;
+      color: var(--text-secondary);
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      margin-top: 2px;
+    }
+
+    .teacher-phone-link {
+      color: var(--text-primary);
+      text-decoration: underline;
+      font-weight: 600;
+    }
+
+    .btn-teacher-edit {
+      background: var(--badge-bg);
+      color: var(--text-primary);
+      border: 1px solid var(--border-color);
+      padding: 6px 10px;
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      flex-shrink: 0;
+    }
+
+    .btn-teacher-edit:hover {
+      background: var(--msg-out);
+      color: #ffffff;
     }
 
     .auth-tabs {
@@ -878,8 +997,8 @@
         </div>
       </div>
       <div class="header-actions">
-        <!-- Direct Mobile PWA Install Button -->
-        <button id="installAppBtn" class="btn-install">📲 Install App</button>
+        <!-- BOU Teacher List Button Popup Trigger -->
+        <button id="teacherListBtn" class="btn-install">👨‍🏫 Teacher List</button>
         <!-- User Profile Button -->
         <div class="user-profile-btn" id="profileBtn" title="Account & Settings">
           <span id="userInitials">GST</span>
@@ -895,6 +1014,9 @@
 
     <!-- PUBLIC CHAT SECTION -->
     <section class="content-section" id="chatSection">
+      <!-- Pull To Refresh Indicator -->
+      <div class="ptr-indicator" id="chatPtrIndicator">⬇️ টেনে আনুন রিলোড করতে...</div>
+
       <!-- Scrollable Message Area -->
       <main class="message-area" id="messageArea">
         <!-- Messages rendered dynamically -->
@@ -941,6 +1063,9 @@
 
     <!-- NOTICE BOARD SECTION -->
     <section class="content-section hidden" id="noticeSection">
+      <!-- Pull To Refresh Indicator -->
+      <div class="ptr-indicator" id="noticePtrIndicator">⬇️ টেনে আনুন রিলোড করতে...</div>
+
       <div class="notice-container">
         <div class="notice-header-bar">
           <div class="notice-controls">
@@ -959,6 +1084,58 @@
         </div>
       </div>
     </section>
+
+    <!-- BOU Teacher List Popup Modal -->
+    <div class="modal-overlay hidden" id="teacherModal">
+      <div class="modal-card">
+        <button class="modal-close-btn" id="closeTeacherModalBtn" type="button">&times;</button>
+        <h3>👨‍🏫 বিষয়ভিত্তিক শিক্ষকবৃন্দ</h3>
+
+        <div class="teacher-list-container" id="teacherListFeed">
+          <!-- Subject Teachers Rendered Here -->
+        </div>
+      </div>
+    </div>
+
+    <!-- Edit Teacher Admin Modal -->
+    <div class="modal-overlay hidden" id="editTeacherModal">
+      <div class="modal-card">
+        <button class="modal-close-btn" id="closeEditTeacherModalBtn" type="button">&times;</button>
+        <h3>✏️ শিক্ষকের তথ্য এডিট করুন (Admin)</h3>
+        <form id="editTeacherForm">
+          <input type="hidden" id="editTeacherId" />
+          
+          <div class="avatar-upload-wrapper">
+            <img src="https://via.placeholder.com/100?text=Photo" class="avatar-preview" id="editTeacherImgPreview" />
+            <label for="editTeacherImgInput" class="btn-upload-pic" id="editTeacherImgLabel">📷 স্যারের ছবি আপলোড করুন</label>
+            <input type="file" id="editTeacherImgInput" accept="image/*" class="hidden" />
+          </div>
+
+          <div class="form-group">
+            <label>স্যারের নাম</label>
+            <input type="text" id="editTeacherName" required placeholder="যেমন: মঞ্জু স্যার" />
+          </div>
+
+          <div class="form-group">
+            <label>বিষয় / ক্লাস</label>
+            <input type="text" id="editTeacherSubject" required placeholder="যেমন: বাংলা টিচার" />
+          </div>
+
+          <div class="form-group">
+            <label>মোবাইল নম্বর</label>
+            <input type="tel" id="editTeacherPhone" required placeholder="যেমন: 017XXXXXXXX" />
+          </div>
+
+          <div class="form-group">
+            <label style="color:var(--danger); font-weight:bold;">এডমিন পাসওয়ার্ড</label>
+            <input type="password" id="editTeacherAdminPassword" required placeholder="পাসওয়ার্ড লিখুন" />
+          </div>
+
+          <div class="status-msg" id="editTeacherStatus"></div>
+          <button type="submit" class="btn-primary" id="saveTeacherBtn">সংরক্ষণ করুন</button>
+        </form>
+      </div>
+    </div>
 
     <!-- Auth & Profile Settings Modal -->
     <div class="modal-overlay hidden" id="authModal">
@@ -1055,18 +1232,6 @@
       </div>
     </div>
 
-    <!-- PWA Installation Guide Modal (iOS & Unsupported Browsers) -->
-    <div class="modal-overlay hidden" id="pwaInstallModal">
-      <div class="modal-card">
-        <button class="modal-close-btn" id="closePwaModalBtn" type="button">&times;</button>
-        <h3 style="margin-bottom:12px;">📱 App Installation Guide</h3>
-        <div id="pwaInstallInstructions" style="font-size:13px; color:var(--text-secondary); line-height:1.6; text-align:left;">
-          <!-- Custom step-by-step instructions inserted via JS -->
-        </div>
-        <button type="button" class="btn-primary" id="gotItPwaBtn" style="margin-top:16px;">ঠিক আছে</button>
-      </div>
-    </div>
-
     <!-- Interactive Image Lightbox Modal with Pan & Zoom -->
     <div class="lightbox-overlay hidden" id="lightboxModal">
       <div class="lightbox-toolbar">
@@ -1083,85 +1248,6 @@
   </div>
 
   <script>
-    // =========================================================================
-    // Check Standalone Mode Status
-    // =========================================================================
-    function isRunningStandalone() {
-      return (window.matchMedia('(display-mode: standalone)').matches) || 
-             (window.navigator.standalone === true) || 
-             (document.referrer.includes('android-app://'));
-    }
-
-    // Detect Device Platform
-    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
-
-    // =========================================================================
-    // Universal Smart PWA Installation Handler
-    // =========================================================================
-    let deferredPrompt = null;
-    const installAppBtn = document.getElementById('installAppBtn');
-    const pwaInstallModal = document.getElementById('pwaInstallModal');
-    const pwaInstallInstructions = document.getElementById('pwaInstallInstructions');
-
-    if (isRunningStandalone()) {
-      installAppBtn.style.display = 'none';
-    }
-
-    window.addEventListener('beforeinstallprompt', (e) => {
-      e.preventDefault();
-      deferredPrompt = e;
-      if (!isRunningStandalone()) {
-        installAppBtn.style.display = 'flex';
-      }
-    });
-
-    window.addEventListener('appinstalled', () => {
-      deferredPrompt = null;
-      installAppBtn.style.display = 'none';
-    });
-
-    installAppBtn.addEventListener('click', async () => {
-      if (deferredPrompt) {
-        deferredPrompt.prompt();
-        const { outcome } = await deferredPrompt.userChoice;
-        if (outcome === 'accepted') {
-          installAppBtn.style.display = 'none';
-        }
-        deferredPrompt = null;
-      } else if (isIOS) {
-        showPwaGuide('ios');
-      } else {
-        showPwaGuide('general');
-      }
-    });
-
-    function showPwaGuide(type) {
-      if (type === 'ios') {
-        pwaInstallInstructions.innerHTML = `
-          <p style="margin-bottom:10px;"><strong>iPhone / iPad (iOS) এ ইনস্টল করার উপায়:</strong></p>
-          <ol style="padding-left:20px; margin-bottom:10px;">
-            <li>Safari ব্রাউজারের নিচে থাকা <strong>Share (শেয়ার ⎋)</strong> বাটনে প্রেস করুন।</li>
-            <li>একটু স্ক্রোল করে <strong>'Add to Home Screen' (হোম স্ক্রিনে যোগ করুন)</strong> অপশনে ট্যাপ করুন।</li>
-            <li>উপরে ডান কোণায় <strong>'Add'</strong> এ ট্যাপ করলেই অ্যাপটি হোম স্ক্রিনে চলে আসবে।</li>
-          </ol>
-        `;
-      } else {
-        pwaInstallInstructions.innerHTML = `
-          <p style="margin-bottom:10px;"><strong>কম্পিউটার বা অ্যান্ড্রয়েডে ম্যানুয়ালি ইনস্টল করার উপায়:</strong></p>
-          <ol style="padding-left:20px; margin-bottom:10px;">
-            <li>ব্রাউজারের উপরে ডানদিকে <strong>৩টি ডট (Menu ⋮)</strong> অপশনে ক্লিক করুন।</li>
-            <li><strong>'Save and share'</strong> অথবা <strong>'Install BOU Lounge'</strong> অপশনটিতে সিলেক্ট করুন।</li>
-            <li>পপআপে <strong>Install</strong> সিলেক্ট করলে সরাসরি অ্যাপ হিসেবে ডাউনলোড হবে।</li>
-          </ol>
-          <p style="font-size:11px; color:var(--text-secondary);">* নিশ্চিত করুন আপনার GitHub রিপোজিটরিতে manifest.json এবং sw.js ফাইল দুটি আপলোড করা আছে।</p>
-        `;
-      }
-      pwaInstallModal.classList.remove('hidden');
-    }
-
-    document.getElementById('closePwaModalBtn').addEventListener('click', () => pwaInstallModal.classList.add('hidden'));
-    document.getElementById('gotItPwaBtn').addEventListener('click', () => pwaInstallModal.classList.add('hidden'));
-
     // Service Worker Registration from actual sw.js file
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
@@ -1170,6 +1256,221 @@
         });
       });
     }
+
+    // =========================================================================
+    // BOU 6 Subject Teachers Dataset & Modal Logic
+    // =========================================================================
+    const defaultTeachersData = [
+      { id: "tech_1", subject: "বাংলা টিচার", name: "মঞ্জু স্যার", phone: "01711000000", icon: "📚", image: "" },
+      { id: "tech_2", subject: "ইংরেজি টিচার", name: "নীরজ আলী উসমান", phone: "01722000000", icon: "🔤", image: "" },
+      { id: "tech_3", subject: "আইসিটি টিচার", name: "মিরাজ মিজানুর রহমান খান", phone: "01733000000", icon: "💻", image: "" },
+      { id: "tech_4", subject: "হিসাববিজ্ঞানের টিচার", name: "সাগর স্যার", phone: "01744000000", icon: "📊", image: "" },
+      { id: "tech_5", subject: "ব্যবসায় সংগঠনের টিচার", name: "পলাশ স্যার", phone: "01755000000", icon: "🏢", image: "" },
+      { id: "tech_6", subject: "ফ্রিল্যান্স ও ব্যবসার টিচার", name: "জামান স্যার", phone: "01766000000", icon: "🚀", image: "" }
+    ];
+
+    const teacherModal = document.getElementById('teacherModal');
+    const teacherListBtn = document.getElementById('teacherListBtn');
+    const closeTeacherModalBtn = document.getElementById('closeTeacherModalBtn');
+    const teacherListFeed = document.getElementById('teacherListFeed');
+
+    teacherListBtn.addEventListener('click', () => {
+      renderTeacherList();
+      teacherModal.classList.remove('hidden');
+    });
+
+    closeTeacherModalBtn.addEventListener('click', () => {
+      teacherModal.classList.add('hidden');
+    });
+
+    function renderTeacherList() {
+      teacherListFeed.innerHTML = '';
+
+      const teachers = (localStoreData.teachers && localStoreData.teachers.length > 0) ? localStoreData.teachers : defaultTeachersData;
+
+      teachers.forEach(t => {
+        const card = document.createElement('div');
+        card.className = 'teacher-card';
+
+        let avatarContent = '';
+        if (t.image) {
+          avatarContent = `<img src="${escapeHtml(t.image)}" class="teacher-avatar-img" onclick="openLightbox('${escapeHtml(t.image)}')" alt="${escapeHtml(t.name)}" />`;
+        } else {
+          avatarContent = t.icon || '👨‍🏫';
+        }
+
+        card.innerHTML = `
+          <div class="teacher-avatar-box">
+            ${avatarContent}
+          </div>
+          <div class="teacher-info">
+            <div class="teacher-name">${escapeHtml(t.name)}</div>
+            <div class="teacher-dept">${escapeHtml(t.subject)}</div>
+            ${t.phone ? `<div class="teacher-phone">📞 <a href="tel:${escapeHtml(t.phone)}" class="teacher-phone-link">${escapeHtml(t.phone)}</a></div>` : ''}
+          </div>
+          <button class="btn-teacher-edit" onclick="openEditTeacherModal('${t.id}')">✏️ এডিট</button>
+        `;
+        teacherListFeed.appendChild(card);
+      });
+    }
+
+    // Teacher Admin Edit Logic
+    let currentEditingTeacherImg = null;
+
+    function openEditTeacherModal(id) {
+      if (!localStoreData.teachers || localStoreData.teachers.length === 0) {
+        localStoreData.teachers = JSON.parse(JSON.stringify(defaultTeachersData));
+      }
+
+      const teacher = localStoreData.teachers.find(t => t.id === id) || defaultTeachersData.find(t => t.id === id);
+      if (!teacher) return;
+
+      document.getElementById('editTeacherId').value = teacher.id;
+      document.getElementById('editTeacherName').value = teacher.name || '';
+      document.getElementById('editTeacherSubject').value = teacher.subject || '';
+      document.getElementById('editTeacherPhone').value = teacher.phone || '';
+      document.getElementById('editTeacherAdminPassword').value = '';
+      document.getElementById('editTeacherStatus').textContent = '';
+      
+      currentEditingTeacherImg = teacher.image || null;
+      document.getElementById('editTeacherImgPreview').src = currentEditingTeacherImg || 'https://via.placeholder.com/100?text=Teacher';
+      document.getElementById('editTeacherImgLabel').textContent = '📷 স্যারের ছবি আপলোড করুন';
+      
+      document.getElementById('editTeacherModal').classList.remove('hidden');
+    }
+
+    document.getElementById('closeEditTeacherModalBtn').addEventListener('click', () => {
+      document.getElementById('editTeacherModal').classList.add('hidden');
+    });
+
+    document.getElementById('editTeacherImgInput').addEventListener('change', async function() {
+      const file = this.files[0];
+      if (!file) return;
+      const label = document.getElementById('editTeacherImgLabel');
+      const statusEl = document.getElementById('editTeacherStatus');
+      try {
+        label.textContent = "ছবি আপলোড হচ্ছে...";
+        statusEl.textContent = "ছবি আপলোড হচ্ছে, অপেক্ষা করুন...";
+        statusEl.className = "status-msg info";
+        
+        const imgUrl = await uploadToCloudinary(file);
+        if (imgUrl) {
+          currentEditingTeacherImg = imgUrl;
+          document.getElementById('editTeacherImgPreview').src = imgUrl;
+          label.textContent = "আপলোড সফল!";
+          statusEl.textContent = "ছবি সফলভাবে আপলোড হয়েছে!";
+          statusEl.className = "status-msg info";
+        } else {
+          label.textContent = "ছবি পরিবর্তন করুন";
+          statusEl.textContent = "ছবি আপলোড ব্যর্থ হয়েছে! আবার চেষ্টা করুন।";
+          statusEl.className = "status-msg error";
+        }
+      } catch (e) {
+        label.textContent = "আপলোড ব্যর্থ";
+        statusEl.textContent = "ছবি আপলোডে সমস্যা হয়েছে।";
+        statusEl.className = "status-msg error";
+      }
+    });
+
+    document.getElementById('editTeacherForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const id = document.getElementById('editTeacherId').value;
+      const name = document.getElementById('editTeacherName').value.trim();
+      const subject = document.getElementById('editTeacherSubject').value.trim();
+      const phone = document.getElementById('editTeacherPhone').value.trim();
+      const pass = document.getElementById('editTeacherAdminPassword').value.trim();
+      const statusEl = document.getElementById('editTeacherStatus');
+
+      if (pass !== ADMIN_PASSWORD_DEFAULT) {
+        statusEl.textContent = 'ভুল এডমিন পাসওয়ার্ড!';
+        statusEl.className = 'status-msg error';
+        return;
+      }
+
+      if (!localStoreData.teachers || localStoreData.teachers.length === 0) {
+        localStoreData.teachers = JSON.parse(JSON.stringify(defaultTeachersData));
+      }
+
+      const idx = localStoreData.teachers.findIndex(t => t.id === id);
+      if (idx !== -1) {
+        localStoreData.teachers[idx].name = name;
+        localStoreData.teachers[idx].subject = subject;
+        localStoreData.teachers[idx].phone = phone;
+        localStoreData.teachers[idx].image = currentEditingTeacherImg || '';
+      } else {
+        localStoreData.teachers.push({
+          id: id,
+          name: name,
+          subject: subject,
+          phone: phone,
+          image: currentEditingTeacherImg || '',
+          icon: '👨‍🏫'
+        });
+      }
+
+      // Save locally to LocalStorage
+      localStorage.setItem('bou_teachers_data', JSON.stringify(localStoreData.teachers));
+
+      statusEl.textContent = 'স্যারের তথ্য সফলভাবে সংরক্ষিত হয়েছে!';
+      statusEl.className = 'status-msg info';
+
+      renderTeacherList();
+      await saveToJSONBin();
+
+      setTimeout(() => {
+        document.getElementById('editTeacherModal').classList.add('hidden');
+      }, 600);
+    });
+
+    // =========================================================================
+    // Touch Pull-To-Refresh Implementation (Chat & Notice)
+    // =========================================================================
+    function setupPullToRefresh(containerId, indicatorId) {
+      const container = document.getElementById(containerId);
+      const indicator = document.getElementById(indicatorId);
+      let startY = 0;
+      let currentY = 0;
+      let isPulling = false;
+
+      container.addEventListener('touchstart', (e) => {
+        if (container.scrollTop === 0) {
+          startY = e.touches[0].clientY;
+          isPulling = true;
+        }
+      }, { passive: true });
+
+      container.addEventListener('touchmove', (e) => {
+        if (!isPulling) return;
+        currentY = e.touches[0].clientY;
+        const diff = currentY - startY;
+
+        if (diff > 0 && container.scrollTop === 0) {
+          if (diff > 35) {
+            indicator.classList.add('visible');
+            indicator.innerHTML = diff > 80 ? '🔄 ছেড়ে দিন রিলোড হবে...' : '⬇️ টেনে আনুন রিলোড করতে...';
+          }
+        }
+      }, { passive: true });
+
+      container.addEventListener('touchend', (e) => {
+        if (!isPulling) return;
+        const diff = currentY - startY;
+        if (diff > 80 && container.scrollTop === 0) {
+          indicator.innerHTML = '🔄 রিলোড হচ্ছে...';
+          setTimeout(() => {
+            window.location.reload();
+          }, 300);
+        } else {
+          indicator.classList.remove('visible');
+        }
+        isPulling = false;
+        startY = 0;
+        currentY = 0;
+      });
+    }
+
+    setupPullToRefresh('messageArea', 'chatPtrIndicator');
+    setupPullToRefresh('noticeFeed', 'noticePtrIndicator');
 
     // =========================================================================
     // Global Configurations & Online API
@@ -1192,12 +1493,24 @@
     let tempNoticeImgBase64 = null;
     let tempNoticeFileSize = null;
     let isSyncing = false;
+    let initialChatScrollDone = false;
+
+    // Load initial teacher data from LocalStorage if exists
+    let initialTeachers = JSON.parse(JSON.stringify(defaultTeachersData));
+    const savedTeachersData = localStorage.getItem('bou_teachers_data');
+    if (savedTeachersData) {
+      try {
+        const parsed = JSON.parse(savedTeachersData);
+        if (Array.isArray(parsed) && parsed.length > 0) initialTeachers = parsed;
+      } catch (e) {}
+    }
 
     let localStoreData = {
       users: [],
       messages: [],
       notices: [],
-      deletedIds: []
+      deletedIds: [],
+      teachers: initialTeachers
     };
 
     // Helper: File Size Formatter
@@ -1215,6 +1528,19 @@
       const map = new Map();
       (targetArr || []).forEach(item => { if (item && item.id) map.set(item.id, item); });
       sourceArr.forEach(item => { if (item && item.id) map.set(item.id, item); });
+      return Array.from(map.values());
+    }
+
+    // Helper: Merge Teachers where Local edits take priority over remote stale data
+    function mergeTeacherArrays(localArr, remoteArr) {
+      if (!Array.isArray(remoteArr) || remoteArr.length === 0) return localArr || defaultTeachersData;
+      if (!Array.isArray(localArr) || localArr.length === 0) return remoteArr;
+
+      const map = new Map();
+      // First populate remote items
+      remoteArr.forEach(item => { if (item && item.id) map.set(item.id, item); });
+      // Override with local items so user edits persist
+      localArr.forEach(item => { if (item && item.id) map.set(item.id, item); });
       return Array.from(map.values());
     }
 
@@ -1274,7 +1600,9 @@
       }
 
       updateUserUI();
+      renderTeacherList();
       await syncWithJSONBin();
+      scrollToBottom();
       setInterval(syncWithJSONBin, 3000);
     });
 
@@ -1308,13 +1636,13 @@
     });
 
     // =========================================================================
-    // Cloud Image Uploading Helper
+    // Cloud Image Uploading Helper (Cloudinary API)
     // =========================================================================
     async function uploadToCloudinary(file) {
       if (!file) return null;
 
       if (file.size > MAX_FILE_SIZE_BYTES) {
-        alert("File size exceeds 10 MB limit!");
+        alert("ফাইল ১০০০ এমবি (10 MB) এর বেশি হতে পারবে না!");
         return null;
       }
 
@@ -1336,6 +1664,7 @@
           return null;
         }
       } catch (error) {
+        console.error("Cloudinary Upload Error:", error);
         return null;
       }
     }
@@ -1871,7 +2200,7 @@
     });
 
     // =========================================================================
-    // JSONBin Online Syncing & Non-Destructive Cloud Persistence
+    // JSONBin Online Syncing & Persistence
     // =========================================================================
     async function syncWithJSONBin() {
       if (isSyncing || !JSONBIN_BIN_ID) return;
@@ -1892,6 +2221,7 @@
             const remoteNotices = json.record.notices || [];
             const remoteUsers = json.record.users || [];
             const remoteDeletedIds = json.record.deletedIds || [];
+            const remoteTeachers = json.record.teachers || [];
 
             // Merge deleted IDs tracking list
             localStoreData.deletedIds = Array.from(new Set([
@@ -1908,10 +2238,16 @@
 
             localStoreData.users = mergeArraysById(localStoreData.users, remoteUsers);
 
+            if (remoteTeachers.length > 0) {
+              localStoreData.teachers = mergeTeacherArrays(localStoreData.teachers, remoteTeachers);
+              localStorage.setItem('bou_teachers_data', JSON.stringify(localStoreData.teachers));
+            }
+
             // Sort messages chronologically
             localStoreData.messages.sort((a, b) => new Date(a.created_at || 0) - new Date(b.created_at || 0));
 
             updateMessagesUI();
+            if (!teacherModal.classList.contains('hidden')) renderTeacherList();
             if (!noticeSection.classList.contains('hidden')) renderAllNotices();
           }
         }
@@ -1935,6 +2271,7 @@
             const remoteNotices = latestJson.record.notices || [];
             const remoteUsers = latestJson.record.users || [];
             const remoteDeletedIds = latestJson.record.deletedIds || [];
+            const remoteTeachers = latestJson.record.teachers || [];
 
             localStoreData.deletedIds = Array.from(new Set([
               ...(localStoreData.deletedIds || []),
@@ -1948,6 +2285,11 @@
             localStoreData.notices = mergedNotices.filter(n => n && n.id && !localStoreData.deletedIds.includes(n.id));
 
             localStoreData.users = mergeArraysById(localStoreData.users, remoteUsers);
+
+            if (remoteTeachers.length > 0) {
+              localStoreData.teachers = mergeTeacherArrays(localStoreData.teachers, remoteTeachers);
+              localStorage.setItem('bou_teachers_data', JSON.stringify(localStoreData.teachers));
+            }
           }
         }
 
@@ -2030,8 +2372,9 @@
         }
       });
 
-      if (isAtBottom) {
+      if (!initialChatScrollDone || isAtBottom) {
         scrollToBottom();
+        initialChatScrollDone = true;
       }
     }
 
@@ -2063,7 +2406,7 @@
 
       let contentHtml = '';
       if (msg.message_text) { contentHtml += `<div>${escapeHtml(msg.message_text)}</div>`; }
-      if (msg.image_url) { contentHtml += `<img src="${msg.image_url}" class="msg-img" onclick="openLightbox('${msg.image_url}')" />`; }
+      if (msg.image_url) { contentHtml += `<img src="${msg.image_url}" class="msg-img" onclick="openLightbox('${msg.image_url}')" onload="scrollToBottom()" />`; }
 
       row.innerHTML = `
         ${avatarHtml}
@@ -2151,7 +2494,9 @@
 
     function scrollToBottom() {
       const messageArea = document.getElementById('messageArea');
-      messageArea.scrollTop = messageArea.scrollHeight;
+      setTimeout(() => {
+        messageArea.scrollTop = messageArea.scrollHeight;
+      }, 60);
     }
 
     function escapeHtml(text) {
