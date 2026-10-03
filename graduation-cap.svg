@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <!-- ডার্ক ব্যাকগ্রাউন্ড ক্যানভাস -->
+  <rect width="64" height="64" rx="18" fill="#181F2A"/>
+
+  <!-- ক্যাপের নিচের অংশ (Skull Cap Base) -->
+  <path d="M 21 31.5 V 38.5 C 21 44.5, 43 44.5, 43 38.5 V 31.5 Z" 
+        fill="#2D3442" 
+        stroke="#11161F" 
+        stroke-width="2" 
+        stroke-linejoin="round"/>
+
+  <!-- ক্যাপের উপরের ডায়মন্ড বোর্ড (Top Board) -->
+  <polygon points="32,17 53,25.5 32,34 11,25.5" 
+           fill="#4A5262" 
+           stroke="#11161F" 
+           stroke-width="2" 
+           stroke-linejoin="round"/>
+
+  <!-- সোনালী ট্যাসেল / সুতা (Golden Tassel) -->
+  <circle cx="32" cy="25.5" r="2" fill="#F59E0B"/>
+  
+  <path d="M 32 25.5 L 22 29.5 V 42" 
+        fill="none" 
+        stroke="#F59E0B" 
+        stroke-width="2.5" 
+        stroke-linecap="round" 
+        stroke-linejoin="round"/>
+
+  <path d="M 22 42 L 22 46" 
+        stroke="#D97706" 
+        stroke-width="3.5" 
+        stroke-linecap="round"/>
+</svg>
